@@ -1,0 +1,18 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_contract_contract_viewer,contract.contract viewer,contract.model_contract_contract,crm_security.group_contract_viewer,1,0,0,0
+access_contract_line_viewer,contract.line viewer,contract.model_contract_line,crm_security.group_contract_viewer,1,0,0,0
+access_contract_template_viewer,contract.template viewer,contract.model_contract_template,crm_security.group_contract_viewer,1,0,0,0
+access_contract_template_line_viewer,contract.template.line viewer,contract.model_contract_template_line,crm_security.group_contract_viewer,1,0,0,0
+access_contract_modification_viewer,contract.modification viewer,contract.model_contract_modification,crm_security.group_contract_viewer,1,0,0,0
+
+access_contract_contract_user,contract.contract user,contract.model_contract_contract,crm_security.group_contract_user,1,1,1,0
+access_contract_line_user,contract.line user,contract.model_contract_line,crm_security.group_contract_user,1,1,1,0
+access_contract_template_user,contract.template user,contract.model_contract_template,crm_security.group_contract_user,1,0,0,0
+access_contract_template_line_user,contract.template.line user,contract.model_contract_template_line,crm_security.group_contract_user,1,0,0,0
+access_contract_modification_user,contract.modification user,contract.model_contract_modification,crm_security.group_contract_user,1,1,1,0
+
+access_contract_contract_manager,contract.contract manager,contract.model_contract_contract,crm_security.group_contract_manager,1,1,1,1
+access_contract_line_manager,contract.line manager,contract.model_contract_line,crm_security.group_contract_manager,1,1,1,1
+access_contract_template_manager,contract.template manager,contract.model_contract_template,crm_security.group_contract_manager,1,1,1,1
+access_contract_template_line_manager,contract.template.line manager,contract.model_contract_template_line,crm_security.group_contract_manager,1,1,1,1
+access_contract_modification_manager,contract.modification manager,contract.model_contract_modification,crm_security.group_contract_manager,1,1,1,1

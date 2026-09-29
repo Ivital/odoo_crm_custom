@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_corporate_roles" model="ir.module.category">
+        <field name="name">Corporate Roles</field>
+        <field name="description">Business roles for the CRM platform</field>
+        <field name="sequence">35</field>
+    </record>
+
+    <!-- CRM -->
+    <record id="group_crm_manager" model="res.groups">
+        <field name="name">CRM Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('sales_team.group_sale_manager'))]"/>
+    </record>
+
+    <!-- Contracts -->
+    <record id="group_contract_viewer" model="res.groups">
+        <field name="name">Contract Viewer</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('agreement_legal.group_agreement_readonly'))]"/>
+    </record>
+
+    <record id="group_contract_user" model="res.groups">
+        <field name="name">Contract User</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[
+                   Command.link(ref('crm_security.group_contract_viewer')),
+                   Command.link(ref('agreement_legal.group_agreement_user'))
+               ]"/>
+    </record>
+
+    <record id="group_contract_manager" model="res.groups">
+        <field name="name">Contract Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[
+                   Command.link(ref('crm_security.group_contract_user')),
+                   Command.link(ref('agreement_legal.group_agreement_manager'))
+               ]"/>
+    </record>
+
+    <!-- Helpdesk -->
+    <record id="group_helpdesk_agent" model="res.groups">
+        <field name="name">Helpdesk Agent</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('helpdesk_mgmt.group_helpdesk_user'))]"/>
+    </record>
+
+    <record id="group_helpdesk_manager" model="res.groups">
+        <field name="name">Helpdesk Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('helpdesk_mgmt.group_helpdesk_manager'))]"/>
+    </record>
+
+    <!-- Field Service -->
+    <record id="group_technician" model="res.groups">
+        <field name="name">Technician</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[
+                   Command.link(ref('fieldservice.group_fsm_user_own')),
+                   Command.link(ref('hr_timesheet.group_hr_timesheet_user'))
+               ]"/>
+    </record>
+
+    <record id="group_dispatcher" model="res.groups">
+        <field name="name">Dispatcher</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('fieldservice.group_fsm_dispatcher'))]"/>
+    </record>
+
+    <record id="group_field_service_manager" model="res.groups">
+        <field name="name">Field Service Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('fieldservice.group_fsm_manager'))]"/>
+    </record>
+
+    <!-- Maintenance -->
+    <record id="group_maintenance_manager" model="res.groups">
+        <field name="name">Maintenance Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('maintenance.group_equipment_manager'))]"/>
+    </record>
+
+    <!-- Project -->
+    <record id="group_project_manager" model="res.groups">
+        <field name="name">Project Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('project.group_project_manager'))]"/>
+    </record>
+
+    <!-- Warehouse -->
+    <record id="group_warehouse_manager" model="res.groups">
+        <field name="name">Warehouse Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('stock.group_stock_manager'))]"/>
+    </record>
+
+    <!-- Purchase -->
+    <record id="group_purchasing_manager" model="res.groups">
+        <field name="name">Purchasing Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <!-- Accounting -->
+    <record id="group_accountant" model="res.groups">
+        <field name="name">Accountant</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('account.group_account_user'))]"/>
+    </record>
+
+    <!-- Audit configuration only.
+         Full cross-domain read-only Auditor comes in a separate hardening step. -->
+    <record id="group_audit_manager" model="res.groups">
+        <field name="name">Audit Manager</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[Command.link(ref('auditlog.group_auditlog_manager'))]"/>
+    </record>
+</odoo>
