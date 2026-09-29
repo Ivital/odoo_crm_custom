@@ -128,7 +128,10 @@
         <field name="name">Audit Manager</field>
         <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
         <field name="implied_ids"
-               eval="[Command.link(ref('auditlog.group_auditlog_manager'))]"/>
+               eval="[
+                   Command.link(ref('base.group_user')),
+                   Command.link(ref('auditlog.group_auditlog_manager'))
+               ]"/>
     </record>
 
     <record id="group_auditor" model="res.groups">
