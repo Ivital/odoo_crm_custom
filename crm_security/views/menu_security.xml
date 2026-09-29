@@ -152,5 +152,47 @@
 
 
 
+
+    <!-- Auditor: read-only Repairs navigation. -->
+    <record id="repair.repair_order_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[Command.link(ref('crm_security.group_auditor'))]"/>
+    </record>
+
+    <!-- Corporate Audit application. -->
+    <menuitem
+        id="menu_corporate_audit_root"
+        name="Audit"
+        sequence="170"
+        groups="crm_security.group_audit_manager,crm_security.group_auditor"
+    />
+
+    <menuitem
+        id="menu_corporate_audit_logs"
+        name="Logs"
+        parent="menu_corporate_audit_root"
+        action="auditlog.action_auditlog_log_tree"
+        sequence="10"
+        groups="crm_security.group_audit_manager,crm_security.group_auditor"
+    />
+
+    <menuitem
+        id="menu_corporate_audit_rules"
+        name="Rules"
+        parent="menu_corporate_audit_root"
+        action="auditlog.action_auditlog_rule_tree"
+        sequence="20"
+        groups="crm_security.group_audit_manager"
+    />
+
+    <menuitem
+        id="menu_corporate_audit_lines"
+        name="Log Lines"
+        parent="menu_corporate_audit_root"
+        action="auditlog.action_auditlog_line"
+        sequence="30"
+        groups="crm_security.group_audit_manager"
+    />
+
 </odoo>
 
