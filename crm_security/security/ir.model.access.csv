@@ -28,3 +28,4 @@ access_auditor_stock_move,auditor stock move,stock.model_stock_move,crm_security
 access_auditor_stock_move_line,auditor stock move line,stock.model_stock_move_line,crm_security.group_auditor,1,0,0,0
 access_auditor_stock_quant,auditor stock quant,stock.model_stock_quant,crm_security.group_auditor,1,0,0,0
 access_auditor_stock_lot,auditor stock lot,stock.model_stock_lot,crm_security.group_auditor,1,0,0,0
+access_audit_manager_log_line_view,audit manager log line view,auditlog.model_auditlog_log_line_view,crm_security.group_audit_manager,1,0,0,0

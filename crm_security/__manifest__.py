@@ -1,7 +1,7 @@
 {
     "name": "CRM Corporate Security",
     "summary": "Corporate RBAC layer for CRM, contracts and service operations",
-    "version": "18.0.1.2.1",
+    "version": "18.0.1.2.2",
     "category": "Administration",
     "license": "LGPL-3",
     "author": "Ivital",
