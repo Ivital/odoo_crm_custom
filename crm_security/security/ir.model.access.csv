@@ -16,3 +16,15 @@ access_contract_line_manager,contract.line manager,contract.model_contract_line,
 access_contract_template_manager,contract.template manager,contract.model_contract_template,crm_security.group_contract_manager,1,1,1,1
 access_contract_template_line_manager,contract.template.line manager,contract.model_contract_template_line,crm_security.group_contract_manager,1,1,1,1
 access_contract_modification_manager,contract.modification manager,contract.model_contract_modification,crm_security.group_contract_manager,1,1,1,1
+access_auditor_helpdesk_ticket,auditor helpdesk ticket,helpdesk_mgmt.model_helpdesk_ticket,crm_security.group_auditor,1,0,0,0
+access_auditor_fsm_order,auditor fsm order,fieldservice.model_fsm_order,crm_security.group_auditor,1,0,0,0
+access_auditor_fsm_equipment,auditor fsm equipment,fieldservice.model_fsm_equipment,crm_security.group_auditor,1,0,0,0
+access_auditor_fsm_location,auditor fsm location,fieldservice.model_fsm_location,crm_security.group_auditor,1,0,0,0
+access_auditor_maintenance_request,auditor maintenance request,maintenance.model_maintenance_request,crm_security.group_auditor,1,0,0,0
+access_auditor_maintenance_equipment,auditor maintenance equipment,maintenance.model_maintenance_equipment,crm_security.group_auditor,1,0,0,0
+access_auditor_repair_order,auditor repair order,repair.model_repair_order,crm_security.group_auditor,1,0,0,0
+access_auditor_stock_picking,auditor stock picking,stock.model_stock_picking,crm_security.group_auditor,1,0,0,0
+access_auditor_stock_move,auditor stock move,stock.model_stock_move,crm_security.group_auditor,1,0,0,0
+access_auditor_stock_move_line,auditor stock move line,stock.model_stock_move_line,crm_security.group_auditor,1,0,0,0
+access_auditor_stock_quant,auditor stock quant,stock.model_stock_quant,crm_security.group_auditor,1,0,0,0
+access_auditor_stock_lot,auditor stock lot,stock.model_stock_lot,crm_security.group_auditor,1,0,0,0

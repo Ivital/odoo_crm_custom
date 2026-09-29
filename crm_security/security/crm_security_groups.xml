@@ -130,4 +130,16 @@
         <field name="implied_ids"
                eval="[Command.link(ref('auditlog.group_auditlog_manager'))]"/>
     </record>
+
+    <record id="group_auditor" model="res.groups">
+        <field name="name">Auditor</field>
+        <field name="category_id" ref="crm_security.module_category_corporate_roles"/>
+        <field name="implied_ids"
+               eval="[
+                   Command.link(ref('crm_security.group_contract_viewer')),
+                   Command.link(ref('account.group_account_readonly')),
+                   Command.link(ref('auditlog.group_auditlog_user'))
+               ]"/>
+    </record>
+
 </odoo>
