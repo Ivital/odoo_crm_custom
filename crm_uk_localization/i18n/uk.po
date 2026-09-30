@@ -1,0 +1,109 @@
+# Translation of Odoo Server.
+# This file contains integration-specific Ukrainian translations.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-30 00:00+0000\n"
+"PO-Revision-Date: 2026-09-30 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Ukrainian\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 == 0 || (n % 10 >= 5 && n % 10 <= 9) || (n % 100 >= 11 && n % 100 <= 14)) ? 2 : 3);\n"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:rating.field_contract_contract__rating_ids
+msgid "Ratings"
+msgstr "Оцінки"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:stock.field_fsm_location__property_stock_customer
+#: model:ir.model.fields,field_description:stock.field_fsm_person__property_stock_customer
+msgid "Customer Location"
+msgstr "Місце клієнта"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:hr.field_fsm_location__employee_ids
+#: model:ir.model.fields,field_description:hr.field_fsm_person__employee_ids
+msgid "Employees"
+msgstr "Співробітники"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:hr.field_fsm_location__employees_count
+#: model:ir.model.fields,field_description:hr.field_fsm_person__employees_count
+msgid "Employees Count"
+msgstr "Кількість співробітників"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:stock.field_fsm_location__picking_warn_msg
+#: model:ir.model.fields,field_description:stock.field_fsm_person__picking_warn_msg
+msgid "Message for Stock Picking"
+msgstr "Повідомлення для складського комплектування"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:purchase_stock.field_fsm_location__on_time_rate
+#: model:ir.model.fields,field_description:purchase_stock.field_fsm_person__on_time_rate
+msgid "On-Time Delivery Rate"
+msgstr "Рівень своєчасної доставки"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:purchase_stock.field_fsm_location__purchase_line_ids
+#: model:ir.model.fields,field_description:purchase_stock.field_fsm_person__purchase_line_ids
+msgid "Purchase Lines"
+msgstr "Рядки закупівлі"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:stock.field_fsm_location__picking_warn
+#: model:ir.model.fields,field_description:stock.field_fsm_person__picking_warn
+msgid "Stock Picking"
+msgstr "Складське комплектування"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:stock.field_fsm_location__property_stock_supplier
+#: model:ir.model.fields,field_description:stock.field_fsm_person__property_stock_supplier
+msgid "Vendor Location"
+msgstr "Місце постачальника"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,field_description:portal.field_res_partner_id_number__website_message_ids
+msgid "Website Messages"
+msgstr "Повідомлення вебсайту"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:purchase_stock.field_fsm_location__on_time_rate
+#: model:ir.model.fields,help:purchase_stock.field_fsm_person__on_time_rate
+msgid "Over the past x days; the number of products received on time divided by the number of ordered products.x is either the System Parameter purchase_stock.on_time_delivery_days or the default 365"
+msgstr "За останні x днів: кількість товарів, отриманих вчасно, поділена на кількість замовлених товарів. x — системний параметр purchase_stock.on_time_delivery_days або типове значення 365"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:hr.field_fsm_location__employee_ids
+#: model:ir.model.fields,help:hr.field_fsm_person__employee_ids
+msgid "Related employees based on their private address"
+msgstr "Пов'язані співробітники на основі їхньої приватної адреси"
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:stock.field_fsm_location__picking_warn
+#: model:ir.model.fields,help:stock.field_fsm_person__picking_warn
+msgid "Selecting the \"Warning\" option will notify user with the message, Selecting \"Blocking Message\" will throw an exception with the message and block the flow. The Message has to be written in the next field."
+msgstr "Вибір опції \"Попередження\" повідомить користувача цим текстом, а \"Блокувальне повідомлення\" створить виняток із цим текстом і заблокує процес. Текст повідомлення потрібно вказати в наступному полі."
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:stock.field_fsm_location__property_stock_customer
+#: model:ir.model.fields,help:stock.field_fsm_person__property_stock_customer
+msgid "The stock location used as destination when sending goods to this contact."
+msgstr "Складське місце, що використовується як призначення під час відправлення товарів цьому контакту."
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:stock.field_fsm_location__property_stock_supplier
+#: model:ir.model.fields,help:stock.field_fsm_person__property_stock_supplier
+msgid "The stock location used as source when receiving goods from this contact."
+msgstr "Складське місце, що використовується як джерело під час отримання товарів від цього контакту."
+
+#. module: crm_uk_localization
+#: model:ir.model.fields,help:portal.field_res_partner_id_number__website_message_ids
+msgid "Website communication history"
+msgstr "Історія комунікації через вебсайт"

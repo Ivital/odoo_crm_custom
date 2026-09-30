@@ -1,0 +1,20 @@
+{
+    "name": "CRM Ukrainian Localization",
+    "summary": "Ukrainian translations for cross-module CRM and service integrations",
+    "version": "18.0.1.0.0",
+    "category": "Localization",
+    "license": "LGPL-3",
+    "author": "Ivital",
+    "depends": [
+        "contract",
+        "fieldservice",
+        "partner_identification",
+        "rating",
+        "stock",
+        "hr",
+        "purchase_stock",
+        "portal",
+    ],
+    "installable": True,
+    "application": False,
+}
