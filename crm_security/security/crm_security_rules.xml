@@ -5,6 +5,11 @@
         <field name="model_id" ref="helpdesk_mgmt.model_helpdesk_ticket"/>
         <field name="groups"
                eval="[Command.link(ref('crm_security.group_auditor'))]"/>
+
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 
@@ -13,6 +18,11 @@
         <field name="model_id" ref="maintenance.model_maintenance_request"/>
         <field name="groups"
                eval="[Command.link(ref('crm_security.group_auditor'))]"/>
+
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 
@@ -21,6 +31,11 @@
         <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
         <field name="groups"
                eval="[Command.link(ref('crm_security.group_auditor'))]"/>
+
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>
