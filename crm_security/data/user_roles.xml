@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Canonical business roles.
+
+        Each OCA User Role directly implies exactly one crm_security
+        business group. The crm_security group remains the canonical
+        owner of the underlying Odoo/OCA security-group composition.
+    -->
+
+    <record id="role_crm_manager" model="res.users.role">
+        <field name="name">CRM-менеджер</field>
+        <field name="sequence">10</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_crm_manager')])]"/>
+    </record>
+
+    <record id="role_contract_viewer" model="res.users.role">
+        <field name="name">Перегляд договорів</field>
+        <field name="sequence">20</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_contract_viewer')])]"/>
+    </record>
+
+    <record id="role_contract_user" model="res.users.role">
+        <field name="name">Користувач договорів</field>
+        <field name="sequence">30</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_contract_user')])]"/>
+    </record>
+
+    <record id="role_contract_manager" model="res.users.role">
+        <field name="name">Менеджер договорів</field>
+        <field name="sequence">40</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_contract_manager')])]"/>
+    </record>
+
+    <record id="role_helpdesk_agent" model="res.users.role">
+        <field name="name">Оператор Helpdesk</field>
+        <field name="sequence">50</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_helpdesk_agent')])]"/>
+    </record>
+
+    <record id="role_helpdesk_manager" model="res.users.role">
+        <field name="name">Керівник Helpdesk</field>
+        <field name="sequence">60</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_helpdesk_manager')])]"/>
+    </record>
+
+    <record id="role_technician" model="res.users.role">
+        <field name="name">Технік</field>
+        <field name="sequence">70</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_technician')])]"/>
+    </record>
+
+    <record id="role_dispatcher" model="res.users.role">
+        <field name="name">Диспетчер</field>
+        <field name="sequence">80</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_dispatcher')])]"/>
+    </record>
+
+    <record id="role_field_service_manager" model="res.users.role">
+        <field name="name">Керівник виїзного сервісу</field>
+        <field name="sequence">90</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_field_service_manager')])]"/>
+    </record>
+
+    <record id="role_maintenance_manager" model="res.users.role">
+        <field name="name">Керівник ТОіР</field>
+        <field name="sequence">100</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_maintenance_manager')])]"/>
+    </record>
+
+    <record id="role_project_manager" model="res.users.role">
+        <field name="name">Керівник проєктів</field>
+        <field name="sequence">110</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_project_manager')])]"/>
+    </record>
+
+    <record id="role_warehouse_manager" model="res.users.role">
+        <field name="name">Керівник складу</field>
+        <field name="sequence">120</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_warehouse_manager')])]"/>
+    </record>
+
+    <record id="role_purchasing_manager" model="res.users.role">
+        <field name="name">Керівник закупівель</field>
+        <field name="sequence">130</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_purchasing_manager')])]"/>
+    </record>
+
+    <record id="role_accountant" model="res.users.role">
+        <field name="name">Бухгалтер</field>
+        <field name="sequence">140</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_accountant')])]"/>
+    </record>
+
+    <record id="role_audit_manager" model="res.users.role">
+        <field name="name">Керівник аудиту</field>
+        <field name="sequence">150</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_audit_manager')])]"/>
+    </record>
+
+    <record id="role_auditor" model="res.users.role">
+        <field name="name">Аудитор</field>
+        <field name="sequence">160</field>
+        <field name="implied_ids"
+               eval="[Command.set([ref('crm_security.group_auditor')])]"/>
+    </record>
+</odoo>

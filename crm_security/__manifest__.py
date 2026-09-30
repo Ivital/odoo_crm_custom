@@ -1,11 +1,12 @@
 {
     "name": "CRM Corporate Security",
     "summary": "Corporate RBAC layer for CRM, contracts and service operations",
-    "version": "18.0.1.2.2",
+    "version": "18.0.1.3.0",
     "category": "Administration",
     "license": "LGPL-3",
     "author": "Ivital",
     "depends": [
+        "base_user_role",
         "account",
         "agreement_legal",
         "auditlog",
@@ -24,6 +25,7 @@
     ],
     "data": [
         "security/crm_security_groups.xml",
+        "data/user_roles.xml",
         "security/ir.model.access.csv",
         "security/crm_security_rules.xml",
         "views/menu_security.xml",
