@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="group_ua_company_legal_data_manager" model="res.groups">
+        <field name="name">Україна: керування юридичними даними підприємства</field>
+        <field name="category_id" ref="base.module_category_administration"/>
+    </record>
+
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('crm_uk_localization.group_ua_company_legal_data_manager'))]"/>
+    </record>
+</odoo>

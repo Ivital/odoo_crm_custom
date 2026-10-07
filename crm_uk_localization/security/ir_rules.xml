@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="rule_l10n_ua_authorized_person_company"
+            model="ir.rule">
+        <field name="name">
+            UA authorized persons: allowed companies
+        </field>
+        <field name="model_id"
+               ref="model_l10n_ua_company_authorized_person"/>
+        <field name="domain_force">
+            [('company_id', 'in', company_ids)]
+        </field>
+        <field name="groups"
+               eval="[(4, ref('crm_uk_localization.group_ua_company_legal_data_manager'))]"/>
+    </record>
+
+    <record id="rule_l10n_ua_participant_company"
+            model="ir.rule">
+        <field name="name">
+            UA company participants: allowed companies
+        </field>
+        <field name="model_id"
+               ref="model_l10n_ua_company_participant"/>
+        <field name="domain_force">
+            [('company_id', 'in', company_ids)]
+        </field>
+        <field name="groups"
+               eval="[(4, ref('crm_uk_localization.group_ua_company_legal_data_manager'))]"/>
+    </record>
+
+    <record id="rule_l10n_ua_beneficial_owner_company"
+            model="ir.rule">
+        <field name="name">
+            UA beneficial owners: allowed companies
+        </field>
+        <field name="model_id"
+               ref="model_l10n_ua_company_beneficial_owner"/>
+        <field name="domain_force">
+            [('company_id', 'in', company_ids)]
+        </field>
+        <field name="groups"
+               eval="[(4, ref('crm_uk_localization.group_ua_company_legal_data_manager'))]"/>
+    </record>
+</odoo>

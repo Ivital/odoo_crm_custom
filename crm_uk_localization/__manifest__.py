@@ -1,7 +1,7 @@
 {
     "name": "CRM Ukrainian Localization",
-    "summary": "Ukrainian translations for cross-module CRM and service integrations",
-    "version": "18.0.1.0.0",
+    "summary": "Ukrainian company legal, tax, ownership, and activity data for CRM",
+    "version": "18.0.2.0.0",
     "category": "Localization",
     "license": "LGPL-3",
     "author": "Ivital",
@@ -14,6 +14,12 @@
         "hr",
         "purchase_stock",
         "portal",
+    ],
+    "data": [
+        "security/res_groups.xml",
+        "security/ir.model.access.csv",
+        "security/ir_rules.xml",
+        "views/res_company_views.xml",
     ],
     "installable": True,
     "application": False,
