@@ -1,7 +1,7 @@
 {
     "name": "CRM Ukrainian Localization",
     "summary": "Ukrainian legal entities, FOP, classifiers, tax data, and employee/contact synchronization",
-    "version": "18.0.4.0.1",
+    "version": "18.0.5.0.0",
     "category": "Localization",
     "license": "LGPL-3",
     "author": "Ivital",
@@ -31,6 +31,7 @@
         "data/l10n_ua.kopfg.csv",
         "views/legal_reference_views.xml",
         "views/res_partner_views.xml",
+        "views/res_partner_employee_views.xml",
         "views/res_company_views.xml",
         "views/hr_employee_views.xml",
     ],

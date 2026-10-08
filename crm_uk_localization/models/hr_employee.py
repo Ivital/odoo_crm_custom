@@ -19,6 +19,22 @@ RELATED_PERSONAL_FIELDS = {
     "country_of_birth",
     "l10n_ua_rnokpp",
     "passport_id",
+    "marital",
+    "spouse_complete_name",
+    "spouse_birthdate",
+    "children",
+    "ssnid",
+    "sinid",
+    "permit_no",
+    "visa_no",
+    "visa_expire",
+    "work_permit_expiration_date",
+    "additional_note",
+    "certificate",
+    "study_field",
+    "study_school",
+    "emergency_contact",
+    "emergency_phone",
 }
 
 
@@ -110,12 +126,130 @@ class HrEmployee(models.Model):
         groups="hr.group_hr_user",
         tracking=True,
     )
+    marital = fields.Selection(
+        related="work_contact_id.l10n_ua_marital",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    spouse_complete_name = fields.Char(
+        related="work_contact_id.l10n_ua_spouse_complete_name",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    spouse_birthdate = fields.Date(
+        related="work_contact_id.l10n_ua_spouse_birthdate",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    children = fields.Integer(
+        related="work_contact_id.l10n_ua_children",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    ssnid = fields.Char(
+        related="work_contact_id.l10n_ua_ssnid",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    sinid = fields.Char(
+        related="work_contact_id.l10n_ua_sinid",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    permit_no = fields.Char(
+        related="work_contact_id.l10n_ua_permit_no",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    visa_no = fields.Char(
+        related="work_contact_id.l10n_ua_visa_no",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    visa_expire = fields.Date(
+        related="work_contact_id.l10n_ua_visa_expire",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    work_permit_expiration_date = fields.Date(
+        related="work_contact_id.l10n_ua_work_permit_expiration_date",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    additional_note = fields.Text(
+        related="work_contact_id.l10n_ua_additional_note",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    certificate = fields.Selection(
+        related="work_contact_id.l10n_ua_certificate",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    study_field = fields.Char(
+        related="work_contact_id.l10n_ua_study_field",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    study_school = fields.Char(
+        related="work_contact_id.l10n_ua_study_school",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    emergency_contact = fields.Char(
+        related="work_contact_id.l10n_ua_emergency_contact",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+    emergency_phone = fields.Char(
+        related="work_contact_id.l10n_ua_emergency_phone",
+        readonly=False,
+        groups="hr.group_hr_user",
+        tracking=True,
+    )
+
+    def _create_work_contacts(self):
+        """Create employee contacts as children of the employee company."""
+        result = super()._create_work_contacts()
+        for employee in self:
+            partner = employee.work_contact_id
+            company_partner = employee.company_id.partner_id
+            if (
+                partner
+                and company_partner
+                and partner != company_partner
+                and not partner.parent_id
+            ):
+                partner.sudo().with_context(
+                    **{SYNC_CONTEXT_KEY: True}
+                ).write(
+                    {
+                        "parent_id": company_partner.id,
+                        "type": "contact",
+                    }
+                )
+        return result
 
     @api.model_create_multi
     def create(self, vals_list):
-        # work_contact_id may not exist until standard hr.create() completes.
-        # Hold only our writable related personal fields until then.
-        # identification_id deliberately remains owned by standard/OCA HR.
+        # Writable related personal fields cannot be written before standard HR
+        # creates/links work_contact_id. Hold them and write after super().
+        # identification_id deliberately remains the Employee ID/tabular number.
         prepared = []
         pending_personal = []
         for incoming in vals_list:
@@ -139,6 +273,7 @@ class HrEmployee(models.Model):
         return employees
 
     def _l10n_ua_sync_identity_to_contact(self):
+        """Keep the visible contact identity aligned with its Employee card."""
         for employee in self:
             if not employee.work_contact_id:
                 continue
@@ -148,6 +283,8 @@ class HrEmployee(models.Model):
                 {
                     "name": employee.name,
                     "image_1920": employee.image_1920,
+                    "function": employee.job_title,
+                    "phone": employee.work_phone,
                 }
             )
 
@@ -155,6 +292,16 @@ class HrEmployee(models.Model):
         result = super().write(vals)
         if self.env.context.get(SYNC_CONTEXT_KEY):
             return result
-        if {"name", "image_1920", "work_contact_id"}.intersection(vals):
+
+        identity_triggers = {
+            "name",
+            "image_1920",
+            "work_contact_id",
+            "job_id",
+            "job_title",
+            "address_id",
+            "work_phone",
+        }
+        if identity_triggers.intersection(vals):
             self._l10n_ua_sync_identity_to_contact()
         return result
