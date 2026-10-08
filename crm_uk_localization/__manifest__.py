@@ -1,7 +1,7 @@
 {
     "name": "CRM Ukrainian Localization",
-    "summary": "Ukrainian company legal, tax, ownership, and activity data for CRM",
-    "version": "18.0.2.0.0",
+    "summary": "Ukrainian partner and company legal, tax, ownership, and activity data for CRM",
+    "version": "18.0.3.0.0",
     "category": "Localization",
     "license": "LGPL-3",
     "author": "Ivital",
@@ -19,6 +19,7 @@
         "security/res_groups.xml",
         "security/ir.model.access.csv",
         "security/ir_rules.xml",
+        "views/res_partner_views.xml",
         "views/res_company_views.xml",
     ],
     "installable": True,

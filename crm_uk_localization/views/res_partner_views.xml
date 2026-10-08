@@ -1,48 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_company_form_uk_legal" model="ir.ui.view">
-        <field name="name">res.company.form.uk.legal</field>
-        <field name="model">res.company</field>
-        <field name="inherit_id" ref="base.view_company_form"/>
+    <record id="view_partner_form_uk_legal" model="ir.ui.view">
+        <field name="name">res.partner.form.uk.legal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority">30</field>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='general_info']" position="attributes">
-                <attribute name="string">Підприємство</attribute>
-            </xpath>
+            <xpath expr="//form/sheet/notebook" position="inside">
+                <page string="Підприємство"
+                      name="ua_company_details"
+                      invisible="not is_company">
+                    <group>
+                        <group>
+                            <field name="l10n_ua_short_name"/>
+                            <field name="company_registry"
+                                   string="Код ЄДРПОУ"/>
+                            <field name="l10n_ua_kopfg_id"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="l10n_ua_legal_status"/>
+                        </group>
+                        <group>
+                            <field name="l10n_ua_registration_date"/>
+                            <field name="l10n_ua_edr_record_number"/>
+                            <field name="l10n_ua_last_registration_action_date"/>
+                            <field name="l10n_ua_currency_id" invisible="1"/>
+                            <field name="l10n_ua_statutory_capital"/>
+                        </group>
+                    </group>
+                </page>
 
-            <xpath expr="//page[@name='general_info']//label[@for='street']" position="attributes">
-                <attribute name="string">Місцезнаходження</attribute>
-            </xpath>
-
-            <field name="vat" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </field>
-
-            <field name="company_registry" position="attributes">
-                <attribute name="string">Код ЄДРПОУ</attribute>
-            </field>
-
-            <field name="company_registry" position="before">
-                <field name="l10n_ua_short_name"/>
-                <field name="l10n_ua_kopfg_id"
-                       options="{'no_create': True, 'no_quick_create': True}"/>
-            </field>
-
-            <field name="company_registry" position="after">
-                <field name="l10n_ua_legal_status"/>
-                <field name="l10n_ua_registration_date"/>
-                <field name="l10n_ua_edr_record_number"/>
-                <field name="l10n_ua_last_registration_action_date"/>
-                <field name="l10n_ua_currency_id" invisible="1"/>
-                <field name="l10n_ua_statutory_capital"/>
-            </field>
-
-            <field name="color" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </field>
-
-            <xpath expr="//page[@name='general_info']" position="after">
-                <page string="Оподаткування" name="ua_taxation">
+                <page string="Оподаткування"
+                      name="ua_partner_taxation"
+                      invisible="not is_company">
                     <group>
                         <group string="Податковий режим">
                             <field name="l10n_ua_tax_system"/>
@@ -52,7 +41,6 @@
                                    invisible="l10n_ua_tax_system != 'simplified'"/>
                             <field name="l10n_ua_tax_authority"/>
                         </group>
-
                         <group string="ПДВ">
                             <field name="l10n_ua_vat_registered"/>
                             <field name="l10n_ua_vat_number"/>
@@ -63,7 +51,9 @@
                     </group>
                 </page>
 
-                <page string="Види діяльності" name="ua_activities">
+                <page string="Види діяльності"
+                      name="ua_partner_activities"
+                      invisible="not is_company">
                     <group>
                         <field name="l10n_ua_main_kved_id"
                                options="{'no_create': True, 'no_quick_create': True}"/>
@@ -74,7 +64,9 @@
                     </group>
                 </page>
 
-                <page string="Керівництво" name="ua_management">
+                <page string="Керівництво"
+                      name="ua_partner_management"
+                      invisible="not is_company">
                     <group>
                         <group string="Керівник">
                             <field name="l10n_ua_manager_partner_id"/>
@@ -84,7 +76,6 @@
                             <field name="l10n_ua_manager_authority_basis_note"
                                    invisible="l10n_ua_manager_authority_basis != 'other'"/>
                         </group>
-
                         <group string="Представництво">
                             <field name="l10n_ua_representation_restrictions"
                                    placeholder="Обмеження щодо представництва юридичної особи..."/>
@@ -96,7 +87,7 @@
 
                     <field name="l10n_ua_authorized_person_ids"
                            nolabel="1"
-                           context="{'active_test': False, 'default_company_id': id}"
+                           context="{'active_test': False}"
                            groups="crm_uk_localization.group_ua_company_legal_data_manager">
                         <list editable="bottom">
                             <field name="partner_id"/>
@@ -110,13 +101,13 @@
                 </page>
 
                 <page string="Власність / КБВ"
-                      name="ua_ownership"
+                      name="ua_partner_ownership"
+                      invisible="not is_company"
                       groups="crm_uk_localization.group_ua_company_legal_data_manager">
                     <separator string="Засновники / учасники"/>
-
                     <field name="l10n_ua_participant_ids"
                            nolabel="1"
-                           context="{'active_test': False, 'default_company_id': id}">
+                           context="{'active_test': False}">
                         <list editable="bottom">
                             <field name="partner_id"/>
                             <field name="ownership_share"/>
@@ -129,10 +120,9 @@
                     </field>
 
                     <separator string="Кінцеві бенефіціарні власники"/>
-
                     <field name="l10n_ua_beneficial_owner_ids"
                            nolabel="1"
-                           context="{'active_test': False, 'default_company_id': id}">
+                           context="{'active_test': False}">
                         <list editable="bottom">
                             <field name="partner_id"/>
                             <field name="ownership_share"/>
@@ -144,44 +134,28 @@
                     </field>
                 </page>
 
-                <page string="Банківські рахунки" name="ua_banking">
+                <page string="Банківські рахунки"
+                      name="ua_partner_banking"
+                      invisible="not is_company">
                     <field name="bank_ids" nolabel="1"/>
-                </page>
-
-                <page string="Оформлення документів"
-                      name="ua_document_layout"
-                      groups="base.group_system">
-                    <group>
-                        <group>
-                            <field name="report_header"/>
-                            <field name="report_footer"/>
-                            <field name="company_details"/>
-                        </group>
-
-                        <group>
-                            <field name="external_report_layout_id"/>
-                            <field name="paperformat_id"/>
-                            <field name="font"/>
-                            <field name="primary_color" widget="color"/>
-                            <field name="secondary_color" widget="color"/>
-                        </group>
-                    </group>
                 </page>
             </xpath>
         </field>
     </record>
 
-    <record id="view_company_list_uk_legal" model="ir.ui.view">
-        <field name="name">res.company.list.uk.legal</field>
-        <field name="model">res.company</field>
-        <field name="inherit_id" ref="base.view_company_tree"/>
+    <record id="view_partner_list_uk_legal" model="ir.ui.view">
+        <field name="name">res.partner.list.uk.legal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
         <field name="arch" type="xml">
-            <field name="name" position="after">
+            <field name="vat" position="after">
                 <field name="company_registry"
                        string="Код ЄДРПОУ"
-                       optional="show"/>
-                <field name="l10n_ua_vat_registered" optional="show"/>
-                <field name="l10n_ua_vat_number" optional="hide"/>
+                       optional="hide"/>
+                <field name="l10n_ua_main_kved_id"
+                       optional="hide"/>
+                <field name="l10n_ua_vat_registered"
+                       optional="hide"/>
             </field>
         </field>
     </record>
