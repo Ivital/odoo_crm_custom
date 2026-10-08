@@ -74,6 +74,70 @@ def _set_identifier(env, partner, category, value):
     )
 
 
+def _get_plot_uom(env):
+    """Resolve geospatial_plot default without creating res.config.settings."""
+    Parameter = env["ir.config_parameter"].sudo()
+    Uom = env["uom.uom"].sudo()
+
+    configured = Parameter.get_param("geospatial_plot.plot_uom_id")
+    if configured:
+        try:
+            record = Uom.browse(int(configured)).exists()
+        except (TypeError, ValueError):
+            record = Uom.browse()
+        if record:
+            return record
+
+    record = env.ref(
+        "geospatial_plot.uom_surface_acre",
+        raise_if_not_found=False,
+    )
+    if record:
+        return record
+
+    return env.ref(
+        "uom.uom_square_meter",
+        raise_if_not_found=False,
+    )
+
+
+def _create_work_contact(employee):
+    """Mirror Odoo hr._create_work_contacts without broken settings default_get."""
+    Partner = employee.env["res.partner"].sudo().with_context(
+        **{SYNC_CONTEXT_KEY: True}
+    )
+
+    values = {
+        "email": employee.work_email,
+        "mobile": employee.mobile_phone,
+        "name": employee.name,
+        "image_1920": employee.image_1920,
+        "company_id": employee.company_id.id,
+    }
+
+    # OCA geospatial_plot computes the default through
+    # res.config.settings.create({}), which can fail when another settings
+    # field has a NOT NULL constraint. Supplying plot_uom_id keeps partner
+    # creation inside the normal ORM while avoiding that unrelated path.
+    if "plot_uom_id" in Partner._fields:
+        plot_uom = _get_plot_uom(employee.env)
+        if not plot_uom:
+            raise RuntimeError(
+                "Cannot resolve plot_uom_id required for work contact creation"
+            )
+        values["plot_uom_id"] = plot_uom.id
+
+    partner = Partner.create(values)
+
+    employee.with_context(
+        **{SYNC_CONTEXT_KEY: True}
+    ).write(
+        {"work_contact_id": partner.id}
+    )
+
+    return partner
+
+
 def migrate(cr, version):
     if not version:
         return
@@ -120,7 +184,7 @@ def migrate(cr, version):
                     {"work_contact_id": employee.user_id.partner_id.id}
                 )
             else:
-                employee.with_context(**{SYNC_CONTEXT_KEY: True})._create_work_contacts()
+                _create_work_contact(employee)
             created_contacts += 1
 
         partner = employee.work_contact_id.sudo()
