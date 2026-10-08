@@ -17,7 +17,7 @@ RELATED_PERSONAL_FIELDS = {
     "birthday",
     "place_of_birth",
     "country_of_birth",
-    "identification_id",
+    "l10n_ua_rnokpp",
     "passport_id",
 }
 
@@ -96,7 +96,7 @@ class HrEmployee(models.Model):
         groups="hr.group_hr_user",
         tracking=True,
     )
-    identification_id = fields.Char(
+    l10n_ua_rnokpp = fields.Char(
         related="work_contact_id.l10n_ua_rnokpp",
         readonly=False,
         string="РНОКПП",
@@ -113,8 +113,9 @@ class HrEmployee(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        # A new employee receives work_contact_id inside standard hr.create().
-        # Hold values of writable related personal fields until that contact exists.
+        # work_contact_id may not exist until standard hr.create() completes.
+        # Hold only our writable related personal fields until then.
+        # identification_id deliberately remains owned by standard/OCA HR.
         prepared = []
         pending_personal = []
         for incoming in vals_list:
