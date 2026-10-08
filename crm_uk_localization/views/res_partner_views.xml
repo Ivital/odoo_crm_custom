@@ -12,12 +12,12 @@
                        class="ms-3"/>
             </field>
 
-            <field id="company" position="attributes">
+            <xpath expr="//field[@id='company']" position="attributes">
                 <attribute name="placeholder">Напр. ДП &quot;КРИВБАСШАХТОЗАКРИТТЯ&quot;</attribute>
-            </field>
-            <field id="individual" position="attributes">
+            </xpath>
+            <xpath expr="//field[@id='individual']" position="attributes">
                 <attribute name="placeholder">Напр. Іваненко Іван Іванович</attribute>
-            </field>
+            </xpath>
             <field name="parent_id" position="attributes">
                 <attribute name="placeholder">Юридична особа...</attribute>
             </field>
