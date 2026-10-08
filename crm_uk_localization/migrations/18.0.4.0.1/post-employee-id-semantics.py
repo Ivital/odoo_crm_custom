@@ -24,57 +24,54 @@ def migrate(cr, version):
 
     cleared_legacy_rnokpp = 0
     generated_employee_ids = 0
-    preserved_employee_ids = 0
 
     for employee in Employee.search([], order="id"):
-        rnokpp_records = (
-            IdNumber.search(
-                [
-                    ("partner_id", "=", employee.work_contact_id.id),
-                    ("category_id", "=", rnokpp_category.id),
-                    ("active", "=", True),
-                    ("status", "!=", "close"),
-                ]
-            )
-            if employee.work_contact_id
-            else IdNumber.browse()
-        )
+        employee_id = (employee.identification_id or "").strip()
 
-        if len(rnokpp_records) > 1:
+        # In 18.0.4.0.0 identification_id was temporarily redefined as a
+        # non-stored related field to the canonical partner RNOKPP. The
+        # physical hr_employee.identification_id column therefore retained
+        # its pre-18.0.4 values as stale legacy data.
+        #
+        # The successful 18.0.4.0.0 migration had already validated every
+        # non-empty legacy identification_id as an exact 10-digit RNOKPP
+        # before copying it to res.partner.id_number. Later edits of the
+        # canonical RNOKPP do not update that stale SQL column, so equality
+        # with the *current* RNOKPP must not be required here.
+        if employee_id:
+            if len(employee_id) != 10 or not employee_id.isdigit():
+                raise RuntimeError(
+                    "Unexpected legacy hr.employee identification_id while "
+                    "restoring Employee ID semantics: "
+                    f"employee={employee.id} length={len(employee_id)}"
+                )
+            employee.write({"identification_id": False})
+            cleared_legacy_rnokpp += 1
+
+        if not hasattr(employee, "_generate_identification_id"):
             raise RuntimeError(
-                "Multiple active RNOKPP identifiers for "
+                "hr_employee_id generator is unavailable for "
                 f"employee={employee.id}"
             )
 
-        rnokpp = rnokpp_records.name.strip() if rnokpp_records else ""
-        employee_id = (employee.identification_id or "").strip()
+        generated = employee._generate_identification_id()
+        if not generated:
+            raise RuntimeError(
+                "Employee ID generator returned no value for "
+                f"employee={employee.id}"
+            )
 
-        # 18.0.4.0.0 temporarily reused identification_id as RNOKPP.
-        # Clear only values proven equal to the canonical partner RNOKPP.
-        if employee_id and rnokpp and employee_id == rnokpp:
-            employee.write({"identification_id": False})
-            employee_id = ""
-            cleared_legacy_rnokpp += 1
-        elif employee_id:
-            preserved_employee_ids += 1
+        employee.write({"identification_id": generated})
+        generated_employee_ids += 1
 
-        # OCA hr_employee_id supplies this generator. Existing employees
-        # created while identification_id was overridden never received
-        # their normal Employee ID, so restore that invariant.
-        if not employee_id and hasattr(employee, "_generate_identification_id"):
-            generated = employee._generate_identification_id()
-            if not generated:
-                raise RuntimeError(
-                    "Employee ID generator returned no value for "
-                    f"employee={employee.id}"
-                )
-            employee.write({"identification_id": generated})
-            generated_employee_ids += 1
+    # Canonical RNOKPP records are not rewritten by this migration.
+    # Their format remains protected by the existing model constraint.
 
     conflicts = 0
     for employee in Employee.search([], order="id"):
         if not employee.work_contact_id or not employee.identification_id:
             continue
+
         if IdNumber.search_count(
             [
                 ("partner_id", "=", employee.work_contact_id.id),
@@ -95,9 +92,8 @@ def migrate(cr, version):
 
     _logger.info(
         "crm_uk_localization 18.0.4.0.1 employee ID semantics restored: "
-        "%s legacy RNOKPP values cleared from employee IDs, "
-        "%s Employee IDs generated, %s existing Employee IDs preserved",
+        "%s legacy RNOKPP values cleared from Employee IDs, "
+        "%s Employee IDs generated",
         cleared_legacy_rnokpp,
         generated_employee_ids,
-        preserved_employee_ids,
     )
