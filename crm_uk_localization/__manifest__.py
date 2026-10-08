@@ -18,6 +18,7 @@
         "rating",
         "stock",
         "hr",
+        "hr_employee_id",
         "purchase_stock",
         "portal",
     ],
