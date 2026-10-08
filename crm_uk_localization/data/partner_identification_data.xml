@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="id_category_ua_rnokpp" model="res.partner.id_category">
+        <field name="code">ua_rnokpp</field>
+        <field name="name">РНОКПП (реєстраційний номер облікової картки платника податків)</field>
+        <field name="validation_code">failed = not id_number.name or len(id_number.name.strip()) != 10 or not id_number.name.strip().isdigit()</field>
+    </record>
+
+    <record id="id_category_ua_passport" model="res.partner.id_category">
+        <field name="code">ua_passport</field>
+        <field name="name">Паспорт / документ, що посвідчує особу (Україна)</field>
+    </record>
+</odoo>

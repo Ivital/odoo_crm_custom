@@ -6,16 +6,39 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority">30</field>
         <field name="arch" type="xml">
+            <field name="company_type" position="after">
+                <field name="l10n_ua_is_fop"
+                       invisible="is_company"
+                       class="ms-3"/>
+            </field>
+
+            <field id="company" position="attributes">
+                <attribute name="placeholder">Напр. ДП &quot;КРИВБАСШАХТОЗАКРИТТЯ&quot;</attribute>
+            </field>
+            <field id="individual" position="attributes">
+                <attribute name="placeholder">Напр. Іваненко Іван Іванович</attribute>
+            </field>
+            <field name="parent_id" position="attributes">
+                <attribute name="placeholder">Юридична особа...</attribute>
+            </field>
+            <button name="create_company" position="attributes">
+                <attribute name="string">Створити юридичну особу</attribute>
+            </button>
+
             <xpath expr="//form/sheet/notebook" position="inside">
-                <page string="Підприємство"
+                <page string="Реєстраційні дані"
                       name="ua_company_details"
-                      invisible="not is_company">
+                      invisible="not is_company and not l10n_ua_is_fop">
                     <group>
                         <group>
-                            <field name="l10n_ua_short_name"/>
+                            <field name="l10n_ua_short_name" invisible="not is_company"/>
                             <field name="company_registry"
-                                   string="Код ЄДРПОУ"/>
+                                   string="Код ЄДРПОУ"
+                                   invisible="not is_company"/>
+                            <field name="l10n_ua_rnokpp"
+                                   invisible="not l10n_ua_is_fop"/>
                             <field name="l10n_ua_kopfg_id"
+                                   readonly="l10n_ua_is_fop"
                                    options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="l10n_ua_legal_status"/>
                         </group>
@@ -24,14 +47,14 @@
                             <field name="l10n_ua_edr_record_number"/>
                             <field name="l10n_ua_last_registration_action_date"/>
                             <field name="l10n_ua_currency_id" invisible="1"/>
-                            <field name="l10n_ua_statutory_capital"/>
+                            <field name="l10n_ua_statutory_capital" invisible="not is_company"/>
                         </group>
                     </group>
                 </page>
 
                 <page string="Оподаткування"
                       name="ua_partner_taxation"
-                      invisible="not is_company">
+                      invisible="not is_company and not l10n_ua_is_fop">
                     <group>
                         <group string="Податковий режим">
                             <field name="l10n_ua_tax_system"/>
@@ -53,13 +76,15 @@
 
                 <page string="Види діяльності"
                       name="ua_partner_activities"
-                      invisible="not is_company">
+                      invisible="not is_company and not l10n_ua_is_fop">
                     <group>
+                        <field name="l10n_ua_activity_classifier"/>
                         <field name="l10n_ua_main_kved_id"
+                               domain="[('classifier', '=', l10n_ua_activity_classifier), ('selectable', '=', True), ('active', '=', True)]"
                                options="{'no_create': True, 'no_quick_create': True}"/>
                         <field name="l10n_ua_kved_ids"
                                widget="many2many_tags"
-                               domain="[('id', '!=', l10n_ua_main_kved_id)]"
+                               domain="[('classifier', '=', l10n_ua_activity_classifier), ('selectable', '=', True), ('active', '=', True), ('id', '!=', l10n_ua_main_kved_id)]"
                                options="{'no_create': True, 'no_quick_create': True}"/>
                     </group>
                 </page>
@@ -69,7 +94,7 @@
                       invisible="not is_company">
                     <group>
                         <group string="Керівник">
-                            <field name="l10n_ua_manager_partner_id"/>
+                            <field name="l10n_ua_manager_partner_id" domain="[('is_company','=',False)]"/>
                             <field name="l10n_ua_manager_position"/>
                             <field name="l10n_ua_manager_appointment_date"/>
                             <field name="l10n_ua_manager_authority_basis"/>
@@ -81,10 +106,8 @@
                                    placeholder="Обмеження щодо представництва юридичної особи..."/>
                         </group>
                     </group>
-
                     <separator string="Інші уповноважені особи"
                                groups="crm_uk_localization.group_ua_company_legal_data_manager"/>
-
                     <field name="l10n_ua_authorized_person_ids"
                            nolabel="1"
                            context="{'active_test': False}"
@@ -105,9 +128,7 @@
                       invisible="not is_company"
                       groups="crm_uk_localization.group_ua_company_legal_data_manager">
                     <separator string="Засновники / учасники"/>
-                    <field name="l10n_ua_participant_ids"
-                           nolabel="1"
-                           context="{'active_test': False}">
+                    <field name="l10n_ua_participant_ids" nolabel="1" context="{'active_test': False}">
                         <list editable="bottom">
                             <field name="partner_id"/>
                             <field name="ownership_share"/>
@@ -118,11 +139,8 @@
                             <field name="active" optional="hide"/>
                         </list>
                     </field>
-
                     <separator string="Кінцеві бенефіціарні власники"/>
-                    <field name="l10n_ua_beneficial_owner_ids"
-                           nolabel="1"
-                           context="{'active_test': False}">
+                    <field name="l10n_ua_beneficial_owner_ids" nolabel="1" context="{'active_test': False}">
                         <list editable="bottom">
                             <field name="partner_id"/>
                             <field name="ownership_share"/>
@@ -136,10 +154,56 @@
 
                 <page string="Банківські рахунки"
                       name="ua_partner_banking"
-                      invisible="not is_company">
+                      invisible="not is_company and not l10n_ua_is_fop">
                     <field name="bank_ids" nolabel="1"/>
                 </page>
             </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_personal_information_uk_hr" model="ir.ui.view">
+        <field name="name">res.partner.form.uk.hr.personal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="partner_contact_personal_information_page.personal_information"/>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <group name="personal_information_group" position="inside">
+                <group string="Особисті контактні дані"
+                       name="ua_hr_private_contact"
+                       groups="hr.group_hr_user">
+                    <field name="l10n_ua_private_email"/>
+                    <field name="l10n_ua_private_phone"/>
+                    <field name="l10n_ua_private_street"/>
+                    <field name="l10n_ua_private_street2"/>
+                    <field name="l10n_ua_private_city"/>
+                    <field name="l10n_ua_private_state_id"
+                           domain="[('country_id', '=?', l10n_ua_private_country_id)]"/>
+                    <field name="l10n_ua_private_zip"/>
+                    <field name="l10n_ua_private_country_id"/>
+                </group>
+                <group string="Документи"
+                       name="ua_hr_identification"
+                       groups="hr.group_hr_user">
+                    <field name="l10n_ua_rnokpp"/>
+                    <field name="l10n_ua_passport_number"/>
+                </group>
+            </group>
+            <group name="personal_information_group" position="after">
+                <group string="Пов'язані картки працівника"
+                       name="ua_hr_employee_links"
+                       groups="hr.group_hr_user">
+                    <field name="employee_ids" nolabel="1" readonly="1">
+                        <list create="false" delete="false" edit="false">
+                            <field name="name"/>
+                            <field name="company_id"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="work_email"/>
+                            <field name="mobile_phone"/>
+                        </list>
+                    </field>
+                </group>
+            </group>
         </field>
     </record>
 
@@ -149,14 +213,38 @@
         <field name="inherit_id" ref="base.view_partner_tree"/>
         <field name="arch" type="xml">
             <field name="vat" position="after">
-                <field name="company_registry"
-                       string="Код ЄДРПОУ"
-                       optional="hide"/>
-                <field name="l10n_ua_main_kved_id"
-                       optional="hide"/>
-                <field name="l10n_ua_vat_registered"
-                       optional="hide"/>
+                <field name="l10n_ua_is_fop" optional="hide"/>
+                <field name="company_registry" string="Код ЄДРПОУ" optional="hide"/>
+                <field name="l10n_ua_kopfg_id" optional="hide"/>
+                <field name="l10n_ua_main_kved_id" optional="hide"/>
+                <field name="l10n_ua_vat_registered" optional="hide"/>
             </field>
+        </field>
+    </record>
+
+    <record id="view_partner_search_uk_legal" model="ir.ui.view">
+        <field name="name">res.partner.search.uk.legal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="company_registry" string="Код ЄДРПОУ"/>
+                <field name="l10n_ua_kopfg_id"/>
+                <field name="l10n_ua_main_kved_id"/>
+                <field name="l10n_ua_kved_ids"/>
+            </field>
+            <filter name="type_person" position="attributes">
+                <attribute name="string">Фізичні особи</attribute>
+            </filter>
+            <filter name="type_company" position="attributes">
+                <attribute name="string">Юридичні особи</attribute>
+            </filter>
+            <filter name="type_company" position="after">
+                <filter string="ФОП" name="type_fop" domain="[('l10n_ua_is_fop','=',True)]"/>
+            </filter>
+            <filter name="group_company" position="attributes">
+                <attribute name="string">Юридична особа</attribute>
+            </filter>
         </field>
     </record>
 </odoo>

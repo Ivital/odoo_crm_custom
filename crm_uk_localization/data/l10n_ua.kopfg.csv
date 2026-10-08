@@ -1,0 +1,91 @@
+id,code,name,previous_code,group_code,selectable,obsolete,valid_from,source_url,active
+kopfg_100,100,Підприємства,,100,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_110,110,Фермерське господарство,200,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_120,120,Приватне підприємство,120,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_130,130,Колективне підприємство,130,100,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_140,140,Державне підприємство,140,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_145,145,Казенне підприємство,145,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_150,150,Комунальне підприємство,150,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_151,151,Спільне комунальне підприємство,150,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_160,160,Дочірнє підприємство,330,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_170,170,Іноземне підприємство,170,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_180,180,"Підприємство об’єднання громадян (релігійної організації, профспілки)",135,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_185,185,Підприємство споживчої кооперації,136,100,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_190,190,Орендне підприємство,190,100,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_191,191,Індивідуальне підприємство,100,100,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_192,192,Сімейне підприємство,110,100,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_193,193,Спільне підприємство,160,100,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_200,200,Господарські товариства,,200,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_230,230,Акціонерне товариство,230,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_231,231,Відкрите акціонерне товариство,231,200,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_232,232,Закрите акціонерне товариство,232,200,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_235,235,Державна акціонерна компанія (товариство),,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_236,236,Державна холдингова компанія,,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_237,237,Холдингова компанія,550,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_240,240,Товариство з обмеженою відповідальністю,240,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_250,250,Товариство з додатковою відповідальністю,250,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_260,260,Повне товариство,260,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_270,270,Командитне товариство,270,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_280,280,Адвокатське об’єднання,,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_281,281,Адвокатське бюро,,200,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_300,300,Кооперативи,180,300,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_310,310,Виробничий кооператив,181,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_320,320,Обслуговуючий кооператив,182,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_321,321,Житлово-будівельний кооператив,"184,185",300,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_322,322,Гаражний кооператив,,300,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_330,330,Споживчий кооператив,930,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_331,331,Споживче товариство,186,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_340,340,Сільськогосподарський виробничий кооператив,187,300,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_350,350,Сільськогосподарський обслуговуючий кооператив,,300,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_360,360,Сільськогосподарський кооператив,,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_370,370,Сільськогосподарське кооперативне об’єднання,,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_390,390,Кооперативний банк,,300,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_400,400,"Організації (установи, заклади)","400,410,420",400,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_410,410,Орган державної влади,,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_415,415,Суди,,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_420,420,Орган місцевого самоврядування,,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_425,425,"Державна організація (установа, заклад)",,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_430,430,"Комунальна організація (установа, заклад)",,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_435,435,"Приватна організація (установа, заклад)",,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_440,440,"Організація (установа, заклад) об’єднання громадян (релігійної організації, профспілки, споживчої кооперації тощо)",,400,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_490,490,Організація орендарів,430,400,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_495,495,Організація покупців,440,400,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_500,500,Об’єднання підприємств (юридичних осіб),,500,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_510,510,Асоціація,"280,421",500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_520,520,Корпорація,290,500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_530,530,Консорціум,300,500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_540,540,Концерн,310,500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_560,560,Спілка споживчих товариств,935,500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_590,590,Інші об’єднання юридичних осіб,320,500,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_600,600,Відокремлені підрозділи без статусу юридичної особи,,600,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_610,610,Філія (інший відокремлений підрозділ),"500,520",600,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_620,620,Представництво,510,600,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_700,700,Непідприємницькі товариства,,700,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_710,710,Органи адвокатського самоврядування,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_711,711,Органи суддівського самоврядування,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_712,712,Вища кваліфікаційна комісія суддів України,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_720,720,Фонди соціального страхування,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_750,750,Саморегулівні організації,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_760,760,Асоціації органів місцевого самоврядування та їх добровільні об’єднання,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_770,770,Торгово-промислова палата,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_780,780,Аудиторська палата України,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_790,790,Організація водокористувачів,,700,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_800,800,"Громадські об’єднання, профспілки, благодійні організації та інші подібні організації",,800,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_810,810,Політична партія,450,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_815,815,Громадська організація,460,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_820,820,Громадська спілка,,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_825,825,Релігійна організація,470,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_830,830,Профспілка,"480,481,482,483,484,485,487",800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_835,835,Об’єднання профспілок,486,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_840,840,Творча спілка (інша професійна організація),461,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_845,845,Благодійна організація,"490,492,493,494",800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_850,850,Організація роботодавців,,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_855,855,Об’єднання співвласників багатоквартирного будинку,491,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_860,860,Орган самоорганізації населення,462,800,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_900,900,Інші організаційно-правові форми,,900,False,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_910,910,Підприємець-фізична особа,340,900,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_915,915,Товарна біржа,,900,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_925,925,Кредитна спілка,,900,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_940,940,Недержавний пенсійний фонд,,900,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_950,950,Садівниче товариство,183,900,False,True,2004-06-01,https://stat.gov.ua/en/node/7437,True
+kopfg_995,995,Інші організаційно-правові форми,,900,True,False,2004-06-01,https://stat.gov.ua/en/node/7437,True

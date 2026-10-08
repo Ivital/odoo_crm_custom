@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_employee_form_uk_personal" model="ir.ui.view">
+        <field name="name">hr.employee.form.uk.personal</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <field name="private_email" position="attributes">
+                <attribute name="string">Особистий email</attribute>
+            </field>
+            <field name="private_phone" position="attributes">
+                <attribute name="string">Особистий телефон</attribute>
+            </field>
+            <field name="country_id" position="attributes">
+                <attribute name="string">Громадянство</attribute>
+            </field>
+            <field name="birthday" position="attributes">
+                <attribute name="string">Дата народження</attribute>
+            </field>
+            <field name="place_of_birth" position="attributes">
+                <attribute name="string">Місце народження</attribute>
+            </field>
+            <field name="country_of_birth" position="attributes">
+                <attribute name="string">Країна народження</attribute>
+            </field>
+            <field name="identification_id" position="attributes">
+                <attribute name="string">РНОКПП</attribute>
+            </field>
+            <field name="passport_id" position="attributes">
+                <attribute name="string">Паспорт / документ, що посвідчує особу</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

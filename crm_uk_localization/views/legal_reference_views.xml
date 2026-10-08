@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_l10n_ua_kved_list" model="ir.ui.view">
+        <field name="name">l10n_ua.kved.list</field>
+        <field name="model">l10n_ua.kved</field>
+        <field name="arch" type="xml">
+            <list string="Види економічної діяльності" default_order="classifier,code">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="classifier"/>
+                <field name="section_code" optional="show"/>
+                <field name="division_code" optional="hide"/>
+                <field name="group_code" optional="hide"/>
+                <field name="valid_from" optional="hide"/>
+                <field name="valid_to" optional="hide"/>
+                <field name="selectable" optional="hide"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_ua_kved_form" model="ir.ui.view">
+        <field name="name">l10n_ua.kved.form</field>
+        <field name="model">l10n_ua.kved</field>
+        <field name="arch" type="xml">
+            <form string="Вид економічної діяльності">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="classifier"/>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="selectable"/>
+                        </group>
+                        <group>
+                            <field name="section_code"/>
+                            <field name="section_name"/>
+                            <field name="division_code"/>
+                            <field name="group_code"/>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="source_url" widget="url"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_l10n_ua_kved_search" model="ir.ui.view">
+        <field name="name">l10n_ua.kved.search</field>
+        <field name="model">l10n_ua.kved</field>
+        <field name="arch" type="xml">
+            <search string="Пошук виду діяльності">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="section_name"/>
+                <separator/>
+                <filter name="kved_2010" string="КВЕД-2010" domain="[('classifier','=','kved_2010')]"/>
+                <filter name="nace_21" string="NACE 2.1-UA" domain="[('classifier','=','nace_2_1_ua')]"/>
+                <filter name="selectable" string="Доступні для вибору" domain="[('selectable','=',True)]"/>
+                <filter name="inactive" string="Архівні" domain="[('active','=',False)]"/>
+                <group expand="0" string="Групувати за">
+                    <filter name="group_classifier" string="Класифікатор" context="{'group_by':'classifier'}"/>
+                    <filter name="group_section" string="Секція" context="{'group_by':'section_code'}"/>
+                    <filter name="group_division" string="Розділ" context="{'group_by':'division_code'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_ua_kved" model="ir.actions.act_window">
+        <field name="name">КВЕД / NACE 2.1-UA</field>
+        <field name="res_model">l10n_ua.kved</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_l10n_ua_kved_search"/>
+        <field name="context">{'search_default_kved_2010': 1, 'search_default_selectable': 1}</field>
+    </record>
+
+    <record id="view_l10n_ua_kopfg_list" model="ir.ui.view">
+        <field name="name">l10n_ua.kopfg.list</field>
+        <field name="model">l10n_ua.kopfg</field>
+        <field name="arch" type="xml">
+            <list string="КОПФГ" default_order="code">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="group_code" optional="show"/>
+                <field name="previous_code" optional="hide"/>
+                <field name="selectable" optional="show"/>
+                <field name="obsolete" optional="show"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_ua_kopfg_form" model="ir.ui.view">
+        <field name="name">l10n_ua.kopfg.form</field>
+        <field name="model">l10n_ua.kopfg</field>
+        <field name="arch" type="xml">
+            <form string="Організаційно-правова форма">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="group_code"/>
+                            <field name="previous_code"/>
+                        </group>
+                        <group>
+                            <field name="selectable"/>
+                            <field name="obsolete"/>
+                            <field name="active"/>
+                            <field name="valid_from"/>
+                            <field name="source_url" widget="url"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_l10n_ua_kopfg_search" model="ir.ui.view">
+        <field name="name">l10n_ua.kopfg.search</field>
+        <field name="model">l10n_ua.kopfg</field>
+        <field name="arch" type="xml">
+            <search string="Пошук КОПФГ">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="previous_code"/>
+                <separator/>
+                <filter name="selectable" string="Доступні для вибору" domain="[('selectable','=',True)]"/>
+                <filter name="obsolete" string="Історичні форми" domain="[('obsolete','=',True)]"/>
+                <filter name="inactive" string="Архівні" domain="[('active','=',False)]"/>
+                <group expand="0" string="Групувати за">
+                    <filter name="group_group" string="Група" context="{'group_by':'group_code'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_ua_kopfg" model="ir.actions.act_window">
+        <field name="name">КОПФГ</field>
+        <field name="res_model">l10n_ua.kopfg</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_l10n_ua_kopfg_search"/>
+        <field name="context">{'search_default_selectable': 1}</field>
+    </record>
+
+    <menuitem id="menu_l10n_ua_kved"
+              name="КВЕД / NACE 2.1-UA"
+              parent="contacts.menu_localisation"
+              action="action_l10n_ua_kved"
+              sequence="20"/>
+    <menuitem id="menu_l10n_ua_kopfg"
+              name="КОПФГ"
+              parent="contacts.menu_localisation"
+              action="action_l10n_ua_kopfg"
+              sequence="21"/>
+</odoo>
