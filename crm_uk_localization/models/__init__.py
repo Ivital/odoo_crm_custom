@@ -5,3 +5,4 @@ from . import res_partner_employee
 from . import res_company
 from . import hr_employee
 from . import res_partner_id_number
+from . import ukrainian_person_name

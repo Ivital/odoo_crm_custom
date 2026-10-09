@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_employee_form_uk_name_order" model="ir.ui.view">
+        <field name="name">hr.employee.form.uk.name.order</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id"
+               ref="hr_employee_second_lastname.view_employee_form_inherit"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='firstname'][1]" position="before">
+                <xpath expr="//field[@name='lastname'][1]" position="move"/>
+            </xpath>
+
+            <xpath expr="//field[@name='lastname'][1]" position="attributes">
+                <attribute name="string">Прізвище</attribute>
+            </xpath>
+            <xpath expr="//field[@name='firstname'][1]" position="attributes">
+                <attribute name="string">Ім'я</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lastname2'][1]" position="attributes">
+                <attribute name="string">По батькові</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
