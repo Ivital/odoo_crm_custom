@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="partner_middlename.partner_simple_form" model="ir.ui.view">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="partner_middlename.partner_form" model="ir.ui.view">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="partner_middlename.users_form" model="ir.ui.view">
+        <field name="active" eval="False"/>
+    </record>
+
     <record id="view_employee_form_uk_name_order" model="ir.ui.view">
         <field name="name">hr.employee.form.uk.name.order</field>
         <field name="model">hr.employee</field>
@@ -10,7 +20,6 @@
             <xpath expr="//field[@name='firstname'][1]" position="before">
                 <xpath expr="//field[@name='lastname'][1]" position="move"/>
             </xpath>
-
             <xpath expr="//field[@name='lastname'][1]" position="attributes">
                 <attribute name="string">Прізвище</attribute>
             </xpath>
@@ -19,6 +28,66 @@
             </xpath>
             <xpath expr="//field[@name='lastname2'][1]" position="attributes">
                 <attribute name="string">По батькові</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_form_uk_name_order" model="ir.ui.view">
+        <field name="name">res.partner.form.uk.name.order</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]/div[hasclass('oe_edit_only')]/group[field[@name='firstname'] and field[@name='lastname']]"
+                   position="replace">
+                <group invisible="is_company">
+                    <field name="lastname"
+                           string="Прізвище"
+                           required="not firstname and not lastname2 and type == 'contact'"/>
+                    <field name="firstname"
+                           string="Ім'я"
+                           required="not lastname and not lastname2 and type == 'contact'"/>
+                    <field name="lastname2"
+                           string="По батькові"
+                           required="not firstname and not lastname and type == 'contact'"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='child_ids']/form//div[hasclass('oe_edit_only')]/group[field[@name='firstname'] and field[@name='lastname']]"
+                   position="replace">
+                <group invisible="is_company">
+                    <field name="lastname"
+                           string="Прізвище"
+                           required="not firstname and not lastname2 and type == 'contact'"/>
+                    <field name="firstname"
+                           string="Ім'я"
+                           required="not lastname and not lastname2 and type == 'contact'"/>
+                    <field name="lastname2"
+                           string="По батькові"
+                           required="not firstname and not lastname and type == 'contact'"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_simple_form_uk_name_order" model="ir.ui.view">
+        <field name="name">res.partner.simple.form.uk.name.order</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_simple_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]/group[field[@name='firstname'] and field[@name='lastname']]"
+                   position="replace">
+                <group invisible="is_company">
+                    <field name="lastname"
+                           string="Прізвище"
+                           required="not firstname and not lastname2 and type == 'contact'"/>
+                    <field name="firstname"
+                           string="Ім'я"
+                           required="not lastname and not lastname2 and type == 'contact'"/>
+                    <field name="lastname2"
+                           string="По батькові"
+                           required="not firstname and not lastname and type == 'contact'"/>
+                </group>
             </xpath>
         </field>
     </record>

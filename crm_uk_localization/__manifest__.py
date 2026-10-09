@@ -1,7 +1,7 @@
 {
     "name": "CRM Ukrainian Localization",
     "summary": "Ukrainian legal entities, FOP, classifiers, tax data, and employee/contact synchronization",
-    "version": "18.0.6.0.0",
+    "version": "18.0.6.0.1",
     "category": "Localization",
     "license": "LGPL-3",
     "author": "Ivital",
@@ -12,6 +12,7 @@
         "fieldservice",
         "partner_identification",
         "partner_firstname",
+        "partner_middlename",
         "partner_second_lastname",
         "partner_contact_personal_information_page",
         "partner_contact_birthdate",
