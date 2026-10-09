@@ -4,20 +4,29 @@ import { patch } from "@web/core/utils/patch";
 import { Record } from "@web/model/relational_model/record";
 import { EmployeeFormController } from "@hr/views/form_view";
 
-function isUnloadedX2Many(record, fieldName) {
-    const field = record.fields[fieldName];
-    return Boolean(
-        field &&
-            ["one2many", "many2many"].includes(field.type) &&
-            !field.relatedPropertyField &&
-            !record.data[fieldName]
+function getUnloadedX2ManyFields(record) {
+    return Object.keys(record.activeFields).filter((fieldName) => {
+        const field = record.fields[fieldName];
+        return Boolean(
+            field &&
+                ["one2many", "many2many"].includes(field.type) &&
+                !field.relatedPropertyField &&
+                !record.data[fieldName]
+        );
+    });
+}
+
+function withoutFields(source, excluded) {
+    const excludedSet = new Set(excluded);
+    return Object.fromEntries(
+        Object.entries(source).filter(([fieldName]) => !excludedSet.has(fieldName))
     );
 }
 
 /**
  * Odoo 18 FormController.beforeVisibilityChange() assumes every active x2many
- * field already has a relational value in root.data. On the Employee form that
- * invariant can temporarily be false while lazy form data is being loaded.
+ * field is already materialized in root.data. The Employee form can temporarily
+ * violate that assumption while relational fields are lazy-loaded.
  */
 patch(EmployeeFormController.prototype, {
     beforeVisibilityChange() {
@@ -47,37 +56,51 @@ patch(EmployeeFormController.prototype, {
 });
 
 /**
- * The same Odoo 18 assumption exists inside Record._save():
+ * Guard Employee Record internals against the same transient Odoo 18 state.
  *
+ * Core _save() dereferences:
  *     this.data[fieldName]._abandonRecords()
  *
- * If an Employee x2many is active but has not been materialized in `data`,
- * autosave/manual save crashes before any RPC is made. Temporarily exclude only
- * those unloaded x2many fields from the save specification. They contain no
- * client-side value and therefore no changes to persist.
+ * Core _checkValidity() dereferences:
+ *     this.data[fieldName].records
+ *
+ * An unloaded x2many has no client-side value or changes to validate/save, so
+ * temporarily removing only those fields from activeFields preserves the normal
+ * behavior for every loaded field.
  */
 patch(Record.prototype, {
+    _checkValidity(...args) {
+        if (this.resModel !== "hr.employee") {
+            return super._checkValidity(...args);
+        }
+
+        const unloaded = getUnloadedX2ManyFields(this);
+        if (!unloaded.length) {
+            return super._checkValidity(...args);
+        }
+
+        const originalActiveFields = this.activeFields;
+        this.activeFields = withoutFields(originalActiveFields, unloaded);
+
+        try {
+            return super._checkValidity(...args);
+        } finally {
+            this.activeFields = originalActiveFields;
+        }
+    },
+
     async _save(...args) {
         if (this.resModel !== "hr.employee") {
             return super._save(...args);
         }
 
-        const unloaded = new Set(
-            Object.keys(this.activeFields).filter((fieldName) =>
-                isUnloadedX2Many(this, fieldName)
-            )
-        );
-
-        if (!unloaded.size) {
+        const unloaded = getUnloadedX2ManyFields(this);
+        if (!unloaded.length) {
             return super._save(...args);
         }
 
         const originalActiveFields = this.activeFields;
-        this.activeFields = Object.fromEntries(
-            Object.entries(originalActiveFields).filter(
-                ([fieldName]) => !unloaded.has(fieldName)
-            )
-        );
+        this.activeFields = withoutFields(originalActiveFields, unloaded);
 
         try {
             return await super._save(...args);
