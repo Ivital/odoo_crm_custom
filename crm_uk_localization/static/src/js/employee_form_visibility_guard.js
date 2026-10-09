@@ -56,17 +56,12 @@ patch(EmployeeFormController.prototype, {
 });
 
 /**
- * Guard Employee Record internals against the same transient Odoo 18 state.
+ * Guard Employee Record internals against transient active x2many fields that
+ * have not yet been materialized in record.data.
  *
- * Core _save() dereferences:
- *     this.data[fieldName]._abandonRecords()
- *
- * Core _checkValidity() dereferences:
- *     this.data[fieldName].records
- *
- * An unloaded x2many has no client-side value or changes to validate/save, so
- * temporarily removing only those fields from activeFields preserves the normal
- * behavior for every loaded field.
+ * IMPORTANT: DataPoint.activeFields is a getter-only property in Odoo 18.
+ * Therefore we must update record.config.activeFields temporarily rather than
+ * assigning record.activeFields directly.
  */
 patch(Record.prototype, {
     _checkValidity(...args) {
@@ -79,13 +74,13 @@ patch(Record.prototype, {
             return super._checkValidity(...args);
         }
 
-        const originalActiveFields = this.activeFields;
-        this.activeFields = withoutFields(originalActiveFields, unloaded);
+        const originalActiveFields = this.config.activeFields;
+        this.config.activeFields = withoutFields(originalActiveFields, unloaded);
 
         try {
             return super._checkValidity(...args);
         } finally {
-            this.activeFields = originalActiveFields;
+            this.config.activeFields = originalActiveFields;
         }
     },
 
@@ -99,13 +94,13 @@ patch(Record.prototype, {
             return super._save(...args);
         }
 
-        const originalActiveFields = this.activeFields;
-        this.activeFields = withoutFields(originalActiveFields, unloaded);
+        const originalActiveFields = this.config.activeFields;
+        this.config.activeFields = withoutFields(originalActiveFields, unloaded);
 
         try {
             return await super._save(...args);
         } finally {
-            this.activeFields = originalActiveFields;
+            this.config.activeFields = originalActiveFields;
         }
     },
 });
