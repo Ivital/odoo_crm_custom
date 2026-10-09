@@ -1,11 +1,12 @@
 {
     "name": "CRM Ukrainian Localization",
     "summary": "Ukrainian legal entities, FOP, classifiers, tax data, and employee/contact synchronization",
-    "version": "18.0.5.0.0",
+    "version": "18.0.5.0.1",
     "category": "Localization",
     "license": "LGPL-3",
     "author": "Ivital",
     "depends": [
+        "web",
         "contacts",
         "contract",
         "fieldservice",
@@ -35,6 +36,11 @@
         "views/res_company_views.xml",
         "views/hr_employee_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "crm_uk_localization/static/src/js/employee_form_visibility_guard.js",
+        ],
+    },
     "installable": True,
     "application": False,
 }
