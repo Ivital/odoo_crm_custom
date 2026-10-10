@@ -27,7 +27,7 @@
                         invisible="order_type != 'termination'"/>
             </xpath>
 
-            <xpath expr="//page[@name='termination']//field[@name='basis_document_number']"
+            <xpath expr="//field[@name='basis_document_number']"
                    position="before">
                 <field name="work_period_from"
                        string="Період компенсації відпустки з"/>
