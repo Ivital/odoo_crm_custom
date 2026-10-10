@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_personnel_order_ua" model="ir.ui.view">
+        <field name="name">hr.employee.form.personnel.order.ua</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_personnel_orders"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        groups="hr.group_hr_user">
+                    <field name="personnel_order_count"
+                           widget="statinfo"
+                           string="Кадрові накази"/>
+                </button>
+                <button name="action_view_personnel_events"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-history"
+                        groups="hr.group_hr_user">
+                    <field name="personnel_event_count"
+                           widget="statinfo"
+                           string="Кадрова історія"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

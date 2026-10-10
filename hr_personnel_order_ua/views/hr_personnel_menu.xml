@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_hr_personnel_order"
+              name="Кадрові накази"
+              parent="hr.menu_hr_employee_payroll"
+              action="action_hr_personnel_order"
+              groups="hr.group_hr_user"
+              sequence="30"/>
+
+    <menuitem id="menu_hr_personnel_event"
+              name="Кадрова історія"
+              parent="hr.menu_hr_employee_payroll"
+              action="action_hr_personnel_event"
+              groups="hr.group_hr_user"
+              sequence="31"/>
+</odoo>
