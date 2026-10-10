@@ -25,6 +25,38 @@
                            string="Кадрова історія"/>
                 </button>
             </xpath>
+
+            <xpath expr="//notebook/page[@name='personal_information']" position="before">
+                <page name="l10n_ua_personnel_data"
+                      string="Кадрові дані"
+                      groups="hr.group_hr_user">
+                    <group>
+                        <group string="Поточний трудовий стан">
+                            <field name="identification_id" string="Табельний номер"/>
+                            <field name="service_hire_date" string="Дата прийняття"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="resource_calendar_id"/>
+                            <field name="l10n_ua_current_work_type"/>
+                            <field name="l10n_ua_current_hire_condition"/>
+                            <field name="l10n_ua_current_weekly_hours"/>
+                        </group>
+                        <group string="Поточний контракт">
+                            <field name="l10n_ua_current_contract_id"/>
+                            <field name="l10n_ua_current_contract_date_start"/>
+                            <field name="l10n_ua_current_contract_date_end"/>
+                            <field name="l10n_ua_current_trial_date_end"/>
+                            <field name="l10n_ua_current_professional_category_id"/>
+                            <field name="l10n_ua_current_wage"/>
+                            <field name="l10n_ua_current_order_id"/>
+                        </group>
+                    </group>
+                    <group string="Умови праці">
+                        <field name="l10n_ua_current_work_conditions"/>
+                        <field name="l10n_ua_current_allowance_note"/>
+                    </group>
+                </page>
+            </xpath>
         </field>
     </record>
 </odoo>

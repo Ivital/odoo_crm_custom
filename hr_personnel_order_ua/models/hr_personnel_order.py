@@ -1,22 +1,7 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-
-ORDER_TYPE_SELECTION = [
-    ("hire", "Прийняття на роботу"),
-    ("transfer", "Переведення"),
-    ("position_change", "Зміна посади"),
-    ("department_change", "Зміна підрозділу"),
-    ("salary_change", "Зміна оплати праці"),
-    ("schedule_change", "Зміна графіка роботи"),
-    ("employment_condition_change", "Зміна умов праці"),
-    ("leave", "Відпустка"),
-    ("termination", "Припинення трудового договору"),
-    ("bonus", "Преміювання / матеріальна допомога"),
-    ("business_trip", "Відрядження"),
-    ("disciplinary", "Дисциплінарний наказ"),
-    ("other", "Інший кадровий наказ"),
-]
+from .constants import ENGINE_CONTEXT_KEY, ORDER_TYPE_SELECTION
 
 
 class HrPersonnelOrder(models.Model):
@@ -106,6 +91,8 @@ class HrPersonnelOrder(models.Model):
     )
     line_count = fields.Integer(string="Кількість рядків", compute="_compute_counts")
     event_count = fields.Integer(string="Кількість подій", compute="_compute_counts")
+    pending_line_count = fields.Integer(string="Очікує застосування", compute="_compute_counts")
+    failed_line_count = fields.Integer(string="Помилки застосування", compute="_compute_counts")
 
     submitted_at = fields.Datetime(string="Передано на погодження", readonly=True, copy=False)
     submitted_by_id = fields.Many2one("res.users", string="Передав", readonly=True, copy=False)
@@ -126,11 +113,20 @@ class HrPersonnelOrder(models.Model):
         ),
     ]
 
-    @api.depends("line_ids", "event_ids")
+    @api.depends(
+        "line_ids",
+        "line_ids.application_state",
+        "line_ids.application_error",
+        "event_ids",
+    )
     def _compute_counts(self):
         for order in self:
             order.line_count = len(order.line_ids)
             order.event_count = len(order.event_ids)
+            order.pending_line_count = len(
+                order.line_ids.filtered(lambda line: line.application_state == "pending")
+            )
+            order.failed_line_count = len(order.line_ids.filtered("application_error"))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -155,6 +151,7 @@ class HrPersonnelOrder(models.Model):
     def action_submit(self):
         self._ensure_state({"draft"})
         self._ensure_has_lines()
+        self.mapped("line_ids")._validate_for_post()
         self.write({
             "state": "submitted",
             "submitted_at": fields.Datetime.now(),
@@ -181,15 +178,38 @@ class HrPersonnelOrder(models.Model):
         return True
 
     def action_post(self):
-        """Seal the order without applying employee/contract/leave side effects yet."""
+        """Post the legal order and apply all actions that are already effective."""
         self._ensure_state({"signed"})
         self._ensure_has_lines()
+        self.mapped("line_ids")._validate_for_post()
+
+        now = fields.Datetime.now()
         self.write({
             "state": "posted",
-            "posted_at": fields.Datetime.now(),
+            "posted_at": now,
             "posted_by_id": self.env.user.id,
         })
-        self.mapped("line_ids").write({"application_state": "pending"})
+
+        today = fields.Date.context_today(self)
+        for order in self:
+            for line in order.line_ids.sorted(lambda item: (item.sequence, item.id)):
+                engine_line = line.with_context(**{ENGINE_CONTEXT_KEY: True})
+                if line.order_type == "leave" or line.effective_date <= today:
+                    engine_line._apply_from_order()
+                else:
+                    engine_line._ensure_planned_event()
+        return True
+
+    def action_retry_pending(self):
+        self._ensure_state({"posted"})
+        today = fields.Date.context_today(self)
+        for order in self:
+            due = order.line_ids.filtered(
+                lambda line: line.application_state == "pending"
+                and (line.order_type == "leave" or line.effective_date <= today)
+            )
+            for line in due.sorted(lambda item: (item.effective_date, item.sequence, item.id)):
+                line.with_context(**{ENGINE_CONTEXT_KEY: True})._apply_from_order()
         return True
 
     def action_cancel(self):

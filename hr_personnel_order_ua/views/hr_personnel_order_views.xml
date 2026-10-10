@@ -32,6 +32,8 @@
                 <field name="order_type"/>
                 <field name="subject"/>
                 <field name="line_count"/>
+                <field name="pending_line_count" optional="show"/>
+                <field name="failed_line_count" optional="show"/>
                 <field name="responsible_user_id" widget="many2one_avatar_user" optional="show"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="state" widget="badge"/>
@@ -56,6 +58,10 @@
                     <button name="action_post" type="object" string="Провести"
                             class="btn-primary" groups="hr.group_hr_manager"
                             invisible="state != 'signed'"/>
+                    <button name="action_retry_pending" type="object"
+                            string="Повторити застосування"
+                            groups="hr.group_hr_manager"
+                            invisible="state != 'posted' or pending_line_count == 0"/>
                     <button name="action_cancel" type="object" string="Скасувати"
                             groups="hr.group_hr_manager"
                             invisible="state not in ['draft', 'submitted', 'approved', 'signed']"/>
@@ -67,12 +73,13 @@
                            statusbar_visible="draft,submitted,approved,signed,posted,cancelled"/>
                 </header>
                 <sheet>
+                    <field name="pending_line_count" invisible="1"/>
+                    <field name="failed_line_count" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_events" type="object"
                                 class="oe_stat_button" icon="fa-history"
                                 invisible="event_count == 0">
-                            <field name="event_count" widget="statinfo"
-                                   string="Кадрові події"/>
+                            <field name="event_count" widget="statinfo" string="Кадрові події"/>
                         </button>
                     </div>
 
@@ -83,10 +90,7 @@
 
                     <div class="oe_title">
                         <label for="number"/>
-                        <h1>
-                            <field name="number"
-                                   readonly="state in ['posted', 'cancelled']"/>
-                        </h1>
+                        <h1><field name="number" readonly="state in ['posted', 'cancelled']"/></h1>
                         <h2>
                             <field name="subject"
                                    placeholder="Наприклад: Про прийняття на роботу"
@@ -96,18 +100,15 @@
 
                     <group>
                         <group>
-                            <field name="order_date"
-                                   readonly="state in ['posted', 'cancelled']"/>
+                            <field name="order_date" readonly="state in ['posted', 'cancelled']"/>
                             <field name="order_type" readonly="state != 'draft'"/>
                             <field name="company_id" groups="base.group_multi_company"
                                    readonly="state in ['posted', 'cancelled']"/>
                         </group>
                         <group>
-                            <field name="responsible_user_id"
-                                   widget="many2one_avatar_user"
+                            <field name="responsible_user_id" widget="many2one_avatar_user"
                                    readonly="state in ['posted', 'cancelled']"/>
-                            <field name="signer_id"
-                                   readonly="state in ['posted', 'cancelled']"/>
+                            <field name="signer_id" readonly="state in ['posted', 'cancelled']"/>
                         </group>
                     </group>
 
@@ -120,10 +121,8 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="order_type" column_invisible="True"/>
                                     <field name="employee_id"/>
-                                    <field name="employee_name"
-                                           column_invisible="parent.order_type != 'hire'"/>
-                                    <field name="employee_identification_id"
-                                           optional="show"/>
+                                    <field name="employee_name" column_invisible="parent.order_type != 'hire'"/>
+                                    <field name="employee_identification_id" optional="show"/>
                                     <field name="effective_date"/>
                                     <field name="department_id"
                                            column_invisible="parent.order_type not in ['hire', 'transfer', 'department_change', 'position_change', 'employment_condition_change']"/>
@@ -131,15 +130,12 @@
                                            column_invisible="parent.order_type not in ['hire', 'transfer', 'position_change', 'department_change', 'employment_condition_change']"/>
                                     <field name="wage"
                                            column_invisible="parent.order_type not in ['hire', 'transfer', 'salary_change', 'employment_condition_change']"/>
-                                    <field name="leave_type_id"
-                                           column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="leave_date_from"
-                                           column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="leave_date_to"
-                                           column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="departure_reason_id"
-                                           column_invisible="parent.order_type != 'termination'"/>
+                                    <field name="leave_type_id" column_invisible="parent.order_type != 'leave'"/>
+                                    <field name="leave_date_from" column_invisible="parent.order_type != 'leave'"/>
+                                    <field name="leave_date_to" column_invisible="parent.order_type != 'leave'"/>
+                                    <field name="departure_reason_id" column_invisible="parent.order_type != 'termination'"/>
                                     <field name="application_state" readonly="1"/>
+                                    <field name="application_error" optional="show" readonly="1"/>
                                 </list>
                                 <form string="Кадрова дія">
                                     <field name="order_type" invisible="1"/>
@@ -148,16 +144,16 @@
                                     <group>
                                         <group>
                                             <field name="employee_id"/>
-                                            <field name="employee_name"
-                                                   invisible="order_type != 'hire'"/>
+                                            <field name="employee_name" invisible="order_type != 'hire'"/>
                                             <field name="employee_identification_id"/>
                                         </group>
                                         <group>
                                             <field name="effective_date"/>
                                             <field name="application_state" readonly="1"/>
+                                            <field name="applied_at" readonly="1"/>
+                                            <field name="applied_by_id" readonly="1"/>
                                         </group>
                                     </group>
-
                                     <notebook>
                                         <page string="Умови праці"
                                               invisible="order_type not in ['hire', 'transfer', 'position_change', 'department_change', 'salary_change', 'schedule_change', 'employment_condition_change']">
@@ -187,22 +183,19 @@
                                                 <field name="allowance_note"/>
                                             </group>
                                         </page>
-
-                                        <page string="Відпустка"
-                                              invisible="order_type != 'leave'">
+                                        <page string="Відпустка" invisible="order_type != 'leave'">
                                             <group>
                                                 <field name="leave_type_id"/>
                                                 <field name="work_period_from"/>
                                                 <field name="work_period_to"/>
                                                 <field name="leave_date_from"/>
                                                 <field name="leave_date_to"/>
+                                                <field name="leave_calendar_days" readonly="1"/>
                                                 <field name="health_assistance"/>
                                                 <field name="leave_id" readonly="1"/>
                                             </group>
                                         </page>
-
-                                        <page string="Звільнення"
-                                              invisible="order_type != 'termination'">
+                                        <page string="Звільнення" invisible="order_type != 'termination'">
                                             <group>
                                                 <field name="departure_reason_id"/>
                                                 <field name="legal_reason"/>
@@ -214,45 +207,36 @@
                                                 <field name="severance_amount"/>
                                             </group>
                                         </page>
-
                                         <page string="Системні зв'язки">
                                             <group>
                                                 <field name="contract_id" readonly="1"/>
                                                 <field name="leave_id" readonly="1"/>
+                                                <field name="last_application_attempt_at" readonly="1"/>
                                             </group>
+                                            <field name="application_error" readonly="1"/>
                                             <field name="note"/>
                                         </page>
                                     </notebook>
                                 </form>
                             </field>
                         </page>
-
                         <page string="Підстава та примітки" name="basis">
                             <group>
-                                <field name="basis"
-                                       readonly="state in ['posted', 'cancelled']"/>
-                                <field name="note"
-                                       readonly="state in ['posted', 'cancelled']"/>
-                                <field name="cancellation_reason"
-                                       invisible="state != 'cancelled'"/>
+                                <field name="basis" readonly="state in ['posted', 'cancelled']"/>
+                                <field name="note" readonly="state in ['posted', 'cancelled']"/>
+                                <field name="cancellation_reason" invisible="state != 'cancelled'"/>
                             </group>
                         </page>
-
                         <page string="Аудит" name="audit">
                             <group>
                                 <group>
-                                    <field name="submitted_at"/>
-                                    <field name="submitted_by_id"/>
-                                    <field name="approved_at"/>
-                                    <field name="approved_by_id"/>
+                                    <field name="submitted_at"/><field name="submitted_by_id"/>
+                                    <field name="approved_at"/><field name="approved_by_id"/>
                                 </group>
                                 <group>
-                                    <field name="signed_at"/>
-                                    <field name="signed_by_id"/>
-                                    <field name="posted_at"/>
-                                    <field name="posted_by_id"/>
-                                    <field name="cancelled_at"/>
-                                    <field name="cancelled_by_id"/>
+                                    <field name="signed_at"/><field name="signed_by_id"/>
+                                    <field name="posted_at"/><field name="posted_by_id"/>
+                                    <field name="cancelled_at"/><field name="cancelled_by_id"/>
                                 </group>
                             </group>
                         </page>

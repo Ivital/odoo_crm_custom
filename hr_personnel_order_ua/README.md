@@ -1,22 +1,19 @@
 # HR Personnel Orders Ukraine
 
-Structured personnel orders for Odoo 18.
+Structured Ukrainian personnel orders for Odoo 18.
 
-## Foundation scope — 18.0.1.0.0
+## 18.0.2.0.0 — application engine
 
-This first commit intentionally implements only:
+This release activates the personnel-order execution layer:
 
-- `hr.personnel.order`
-- `hr.personnel.order.line`
-- immutable `hr.personnel.event` ledger model
-- personnel-order workflow
-- company security
-- Employees menu entries
-- Employee smart buttons
-- tests for state transitions, locking, and foundation contracts
+- P-1 hiring creates/updates `hr.employee` and creates the running `hr.contract`;
+- transfers and employment-condition changes update the employee/current contract;
+- P-3 creates and approves `hr.leave`, preserving work-period, calendar-day count, and health-assistance data;
+- P-4 closes the current contract, records departure data, and archives the employee;
+- future-dated non-leave personnel actions create planned immutable events and are applied by an hourly cron when the effective date arrives;
+- every applied action produces an immutable `hr.personnel.event` with before/after state and structured source data;
+- `hr.contract` and `hr.leave` keep the source personnel-order line;
+- the Employee form exposes current personnel/contract terms and order/history smart buttons;
+- failed scheduled applications stay pending with a visible error and can be retried.
 
-`action_post()` does **not** yet mutate `hr.employee`, `hr.contract`, or
-`hr.leave`. Posted lines remain in `pending` application state.
-
-The next development step adds the application engine for P-1 hiring,
-transfers/condition changes, P-3 leave, and P-4 termination.
+The order remains the legal source. Current Employee/Contract/Leave records are operational projections, while `hr.personnel.event` is the auditable history ledger.
