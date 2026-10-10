@@ -1,7 +1,7 @@
 {
     "name": "HR Personnel Orders Ukraine",
     "summary": "Structured Ukrainian personnel orders and immutable HR event history",
-    "version": "18.0.2.0.0",
+    "version": "18.0.3.0.0",
     "category": "Human Resources",
     "license": "LGPL-3",
     "author": "Ivital",
@@ -12,6 +12,8 @@
         "hr_holidays",
         "hr_professional_category",
         "hr_employee_service",
+        "hr_employee_relative",
+        "hr_employee_medical_examination",
         "crm_uk_localization",
     ],
     "data": [
@@ -23,6 +25,10 @@
         "views/hr_personnel_event_views.xml",
         "views/hr_employee_views.xml",
         "views/hr_personnel_menu.xml",
+        "views/hr_personnel_report_views.xml",
+        "report/hr_personnel_reports.xml",
+        "report/hr_personnel_order_templates.xml",
+        "report/hr_personal_card_p2_templates.xml",
     ],
     "installable": True,
     "application": False,

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_personnel_order_form_reports_ua" model="ir.ui.view">
+        <field name="name">hr.personnel.order.form.reports.ua</field>
+        <field name="model">hr.personnel.order</field>
+        <field name="inherit_id" ref="hr_personnel_order_ua.view_hr_personnel_order_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header/field[@name='state']" position="before">
+                <button name="action_print_p1"
+                        type="object"
+                        string="Друк П-1"
+                        class="btn-secondary"
+                        groups="hr.group_hr_user"
+                        invisible="order_type != 'hire'"/>
+                <button name="action_print_p3"
+                        type="object"
+                        string="Друк П-3"
+                        class="btn-secondary"
+                        groups="hr.group_hr_user"
+                        invisible="order_type != 'leave'"/>
+                <button name="action_print_p4"
+                        type="object"
+                        string="Друк П-4"
+                        class="btn-secondary"
+                        groups="hr.group_hr_user"
+                        invisible="order_type != 'termination'"/>
+            </xpath>
+
+            <xpath expr="//page[@name='termination']//field[@name='basis_document_number']"
+                   position="before">
+                <field name="work_period_from"
+                       string="Період компенсації відпустки з"/>
+                <field name="work_period_to"
+                       string="Період компенсації відпустки по"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_personnel_reports_ua" model="ir.ui.view">
+        <field name="name">hr.employee.form.personnel.reports.ua</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id"
+               ref="hr_personnel_order_ua.view_employee_form_personnel_order_ua"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_print_personal_card_p2"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-print"
+                        groups="hr.group_hr_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Друк П-2</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <xpath expr="//page[@name='l10n_ua_personnel_data']/group[last()]"
+                   position="after">
+                <group string="Особова картка П-2">
+                    <group string="Реквізити картки">
+                        <field name="l10n_ua_p2_card_number"/>
+                        <field name="l10n_ua_p2_card_date"/>
+                        <field name="l10n_ua_p2_last_workplace"/>
+                        <field name="l10n_ua_p2_last_job"/>
+                        <field name="l10n_ua_p2_last_departure_date"/>
+                        <field name="l10n_ua_p2_last_departure_reason"/>
+                        <field name="l10n_ua_p2_pension_info"/>
+                        <field name="l10n_ua_p2_registered_address"/>
+                    </group>
+                    <group string="Стаж до / на момент заповнення">
+                        <field name="l10n_ua_p2_total_service_as_of"/>
+                        <label for="l10n_ua_p2_total_service_years"
+                               string="Загальний стаж"/>
+                        <div class="o_row">
+                            <field name="l10n_ua_p2_total_service_years"
+                                   class="oe_inline"/>
+                            <span>р.</span>
+                            <field name="l10n_ua_p2_total_service_months"
+                                   class="oe_inline"/>
+                            <span>міс.</span>
+                            <field name="l10n_ua_p2_total_service_days"
+                                   class="oe_inline"/>
+                            <span>дн.</span>
+                        </div>
+                        <label for="l10n_ua_p2_seniority_years"
+                               string="Стаж для надбавки"/>
+                        <div class="o_row">
+                            <field name="l10n_ua_p2_seniority_years"
+                                   class="oe_inline"/>
+                            <span>р.</span>
+                            <field name="l10n_ua_p2_seniority_months"
+                                   class="oe_inline"/>
+                            <span>міс.</span>
+                            <field name="l10n_ua_p2_seniority_days"
+                                   class="oe_inline"/>
+                            <span>дн.</span>
+                        </div>
+                    </group>
+                </group>
+
+                <group string="Військовий облік (П-2)">
+                    <group>
+                        <field name="l10n_ua_p2_military_group"/>
+                        <field name="l10n_ua_p2_military_category"/>
+                        <field name="l10n_ua_p2_military_composition"/>
+                        <field name="l10n_ua_p2_military_rank"/>
+                        <field name="l10n_ua_p2_military_specialty"/>
+                    </group>
+                    <group>
+                        <field name="l10n_ua_p2_military_fitness"/>
+                        <field name="l10n_ua_p2_military_tcc_registered"/>
+                        <field name="l10n_ua_p2_military_tcc_actual"/>
+                        <field name="l10n_ua_p2_military_special_register"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
