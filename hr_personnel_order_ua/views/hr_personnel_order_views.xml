@@ -9,6 +9,8 @@
                 <field name="subject"/>
                 <field name="order_type"/>
                 <field name="entry_mode"/>
+                <field name="source_key"/>
+                <field name="source_status"/>
                 <field name="order_date"/>
                 <field name="order_year"/>
                 <field name="company_id"/>
@@ -36,6 +38,8 @@
                 <field name="number"/>
                 <field name="order_type"/>
                 <field name="entry_mode" optional="show"/>
+                <field name="source_status" optional="hide"/>
+                <field name="source_row" optional="hide"/>
                 <field name="subject"/>
                 <field name="line_count"/>
                 <field name="pending_line_count" optional="show"/>
@@ -149,6 +153,12 @@
                                            context="{'active_test': action_type != 'hire'}"/>
                                     <field name="employee_name"
                                            column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'hire'"/>
+                                    <field name="source_person_name"
+                                           optional="hide"
+                                           column_invisible="parent.entry_mode != 'historical'"/>
+                                    <field name="identity_resolution"
+                                           optional="hide"
+                                           column_invisible="parent.entry_mode != 'historical'"/>
                                     <field name="employee_identification_id" optional="show"/>
                                     <field name="effective_date"/>
                                     <field name="department_id"
@@ -239,6 +249,21 @@
                                                 <field name="severance_amount"/>
                                             </group>
                                         </page>
+                                        <page string="Джерело"
+                                              invisible="entry_mode != 'historical'">
+                                            <group>
+                                                <group>
+                                                    <field name="source_line_key"/>
+                                                    <field name="source_person_name"/>
+                                                    <field name="identity_resolution"/>
+                                                </group>
+                                                <group>
+                                                    <field name="identity_match_basis"/>
+                                                </group>
+                                            </group>
+                                            <field name="source_text"/>
+                                            <field name="interpretation_note"/>
+                                        </page>
                                         <page string="Системні зв'язки">
                                             <group>
                                                 <field name="contract_id" readonly="1"/>
@@ -251,6 +276,30 @@
                                     </notebook>
                                 </form>
                             </field>
+                        </page>
+                        <page string="Джерело"
+                              name="historical_source"
+                              invisible="entry_mode != 'historical'">
+                            <group>
+                                <group>
+                                    <field name="source_register_key"
+                                           readonly="state in ['posted', 'cancelled']"/>
+                                    <field name="source_register_name"
+                                           readonly="state in ['posted', 'cancelled']"/>
+                                    <field name="source_row"
+                                           readonly="state in ['posted', 'cancelled']"/>
+                                    <field name="source_key"
+                                           readonly="state in ['posted', 'cancelled']"/>
+                                    <field name="source_status"
+                                           readonly="state in ['posted', 'cancelled']"/>
+                                </group>
+                            </group>
+                            <group string="Оригінал запису">
+                                <field name="source_text"
+                                       readonly="state in ['posted', 'cancelled']"/>
+                                <field name="source_note"
+                                       readonly="state in ['posted', 'cancelled']"/>
+                            </group>
                         </page>
                         <page string="Підстава та примітки" name="basis">
                             <group>

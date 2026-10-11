@@ -427,14 +427,21 @@ class TestPersonnelOrderApplication(TransactionCase):
             historical_hire_date,
         )
 
-        self.assertEqual(
+        self.assertFalse(
             historical_contract.date_end,
-            current_start - timedelta(days=1),
         )
 
         self.assertEqual(
             historical_contract.state,
-            "close",
+            "draft",
+        )
+
+        self.assertFalse(
+            historical_contract.l10n_ua_end_date_inferred,
+        )
+
+        self.assertTrue(
+            historical_contract.l10n_ua_end_date_unresolved,
         )
 
         self.assertEqual(
@@ -735,23 +742,22 @@ class TestPersonnelOrderApplication(TransactionCase):
         self.assertTrue(
             contract.l10n_ua_historical_reconstruction
         )
-        self.assertTrue(
+        self.assertFalse(
             contract.l10n_ua_end_date_inferred
         )
-        self.assertFalse(
+        self.assertTrue(
             contract.l10n_ua_end_date_unresolved
         )
         self.assertEqual(
             contract.date_start,
             historical_date,
         )
-        self.assertEqual(
+        self.assertFalse(
             contract.date_end,
-            current_start - timedelta(days=1),
         )
         self.assertEqual(
             contract.state,
-            "close",
+            "draft",
         )
         self.assertEqual(
             contract.l10n_ua_personnel_number,
@@ -806,7 +812,7 @@ class TestPersonnelOrderApplication(TransactionCase):
         employee.invalidate_recordset()
         contract.invalidate_recordset()
 
-        # Real dismissal replaces the provisional boundary.
+        # Real dismissal supplies the first factual end date.
         self.assertEqual(
             contract.date_end,
             termination_date,
@@ -972,6 +978,325 @@ class TestPersonnelOrderApplication(TransactionCase):
             self.job_b,
         )
 
+    def test_04_historical_annulled_source_is_noop(self):
+        before_contracts = (
+            self.env["hr.contract"]
+            .search_count([])
+        )
+
+        before_events = (
+            self.env["hr.personnel.event"]
+            .search_count([])
+        )
+
+        order = self.env[
+            "hr.personnel.order"
+        ].create({
+            "number": "34-к",
+            "order_date":
+                fields.Date.from_string(
+                    "2004-12-14"
+                ),
+            "entry_mode": "historical",
+            "order_type": "other",
+            "subject":
+                "Анульований історичний наказ",
+            "source_register_key":
+                "personnel-long-orders",
+            "source_register_name":
+                "Журнал реєстрації "
+                "тривалих наказів 2004",
+            "source_row": 34,
+            "source_key":
+                "personnel-long-orders:"
+                "2004:34-к",
+            "source_status": "annulled",
+            "source_text":
+                "Про призначення "
+                "Гуца В.І. відповідальним "
+                "за мобілізаційну роботу",
+            "source_note":
+                "Анульований",
+        })
+
+        order.action_register_historical()
+
+        self.assertEqual(
+            order.state,
+            "cancelled",
+        )
+
+        self.assertEqual(
+            order.source_status,
+            "annulled",
+        )
+
+        self.assertFalse(
+            order.line_ids,
+        )
+
+        self.assertFalse(
+            order.event_ids,
+        )
+
+        self.assertEqual(
+            self.env["hr.contract"]
+            .search_count([]),
+            before_contracts,
+        )
+
+        self.assertEqual(
+            self.env["hr.personnel.event"]
+            .search_count([]),
+            before_events,
+        )
+
+    def test_04_source_backfill_blocks_ambiguous_identity(self):
+        historical_date = (
+            fields.Date.from_string(
+                "2004-10-08"
+            )
+        )
+
+        order = self.env[
+            "hr.personnel.order"
+        ].create({
+            "number": "19-к",
+            "order_date": historical_date,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject":
+                "Неоднозначна особа",
+            "source_register_key":
+                "personnel-long-orders",
+            "source_register_name":
+                "Журнал реєстрації "
+                "тривалих наказів 2004",
+            "source_row": 19,
+            "source_key":
+                "personnel-long-orders:"
+                "2004:19-к",
+            "source_status": "normal",
+            "source_text":
+                "Про прийняття "
+                "Іващенка В.П. охоронцем",
+            "line_ids": [(0, 0, {
+                "employee_name":
+                    "Іващенко В.П.",
+                "historical_action_type":
+                    "hire",
+                "effective_date":
+                    historical_date,
+                "source_line_key":
+                    "19-к:01",
+                "source_person_name":
+                    "Іващенко В.П.",
+                "source_text":
+                    "Про прийняття на роботу "
+                    "Іващенка В.П. охоронцем "
+                    "з 08.10.2004",
+                "identity_resolution":
+                    "ambiguous",
+            })],
+        })
+
+        with self.assertRaises(
+            ValidationError
+        ):
+            order.action_register_historical()
+
+        self.assertEqual(
+            order.state,
+            "draft",
+        )
+
+        self.assertFalse(
+            order.event_ids,
+        )
+
+    def test_04_job_name_matching_is_case_and_space_insensitive(self):
+        Job = self.env["hr.job"]
+
+        found = (
+            Job.l10n_ua_find_canonical_job(
+                "   кшз   test   посада a ",
+                company=self.env.company,
+            )
+        )
+
+        self.assertEqual(
+            found,
+            self.job,
+        )
+
+        created = (
+            Job.l10n_ua_get_or_create_canonical_job(
+                "   історична   тестова посада ",
+                company=self.env.company,
+            )
+        )
+
+        self.assertEqual(
+            created.name,
+            "Історична тестова посада",
+        )
+
+        again = (
+            Job.l10n_ua_get_or_create_canonical_job(
+                "історична тестова ПОСАДА",
+                company=self.env.company,
+            )
+        )
+
+        self.assertEqual(
+            again,
+            created,
+        )
+
+    def test_04_historical_part_time_to_main_without_fake_end_date(self):
+        part_time_date = fields.Date.from_string(
+            "2004-10-01"
+        )
+
+        main_date = fields.Date.from_string(
+            "2004-10-28"
+        )
+
+        first_order = self.env[
+            "hr.personnel.order"
+        ].create({
+            "number": "16-к",
+            "order_date": part_time_date,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject":
+                "Прийняття за сумісництвом",
+            "line_ids": [(0, 0, {
+                "employee_name":
+                    "Заславська Тестова Григорівна",
+                "historical_action_type":
+                    "hire",
+                "effective_date":
+                    part_time_date,
+                "job_id":
+                    self.job.id,
+                "work_type":
+                    "part_time",
+                "wage": 0.0,
+            })],
+        })
+
+        first_order.action_register_historical()
+
+        employee = first_order.line_ids.employee_id
+        contract = first_order.line_ids.contract_id
+
+        self.assertFalse(employee.active)
+        self.assertFalse(employee.contract_id)
+
+        self.assertEqual(
+            contract.l10n_ua_work_type,
+            "part_time",
+        )
+
+        self.assertFalse(
+            contract.date_end,
+        )
+
+        self.assertEqual(
+            contract.state,
+            "draft",
+        )
+
+        second_order = self.env[
+            "hr.personnel.order"
+        ].create({
+            "number": "25-к",
+            "order_date":
+                fields.Date.from_string(
+                    "2004-10-25"
+                ),
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject":
+                "Перехід на основне місце роботи",
+            "line_ids": [(0, 0, {
+                "employee_id":
+                    employee.id,
+                "historical_action_type":
+                    "employment_condition_change",
+                "effective_date":
+                    main_date,
+                "work_type":
+                    "main",
+            })],
+        })
+
+        second_order.action_register_historical()
+
+        employee.invalidate_recordset()
+        contract.invalidate_recordset()
+
+        self.assertEqual(
+            contract.l10n_ua_work_type,
+            "main",
+        )
+
+        # Transition does not invent dismissal / end date.
+        self.assertFalse(
+            contract.date_end,
+        )
+
+        self.assertEqual(
+            contract.state,
+            "draft",
+        )
+
+        self.assertFalse(
+            employee.active,
+        )
+
+        self.assertFalse(
+            employee.contract_id,
+        )
+
+        events = self.env[
+            "hr.personnel.event"
+        ].search(
+            [
+                (
+                    "employee_id",
+                    "=",
+                    employee.id,
+                ),
+                (
+                    "order_id",
+                    "in",
+                    [
+                        first_order.id,
+                        second_order.id,
+                    ],
+                ),
+            ],
+            order="effective_date asc, id asc",
+        )
+
+        self.assertEqual(
+            events.mapped("event_type"),
+            [
+                "hire",
+                "employment_condition_change",
+            ],
+        )
+
+        self.assertEqual(
+            events.mapped("work_type"),
+            [
+                "part_time",
+                "main",
+            ],
+        )
+
     def test_04_historical_hire_allows_incomplete_old_requisites(self):
         historical_date = (
             fields.Date.from_string(
@@ -1024,9 +1349,29 @@ class TestPersonnelOrderApplication(TransactionCase):
             contract.l10n_ua_personnel_number,
         )
 
+        self.assertFalse(
+            contract.date_end,
+        )
+
         self.assertEqual(
+            contract.state,
+            "draft",
+        )
+
+        self.assertTrue(
+            contract.l10n_ua_end_date_unresolved,
+        )
+
+        self.assertFalse(
+            employee.active,
+        )
+
+        self.assertFalse(
             employee.contract_id,
-            contract,
+        )
+
+        self.assertFalse(
+            employee.service_hire_date,
         )
 
     def test_04_leave_creates_approved_leave_with_p3_data(self):

@@ -121,6 +121,14 @@ class HrPersonnelOrder(models.Model):
                 "у межах підприємства та календарного року."
             ),
         ),
+        (
+            "source_key_company_unique",
+            "unique(source_key, company_id)",
+            (
+                "Цей запис первинного кадрового джерела "
+                "вже імпортовано."
+            ),
+        ),
     ]
 
     @api.depends("order_date")

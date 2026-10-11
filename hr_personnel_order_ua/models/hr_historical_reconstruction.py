@@ -12,6 +12,138 @@ ENTRY_MODE_SELECTION = [
 ]
 
 
+SOURCE_STATUS_SELECTION = [
+    ("normal", "Чинний запис джерела"),
+    ("annulled", "Анульований у джерелі"),
+]
+
+
+IDENTITY_RESOLUTION_SELECTION = [
+    ("unresolved", "Не визначено"),
+    ("matched", "Зіставлено з наявною карткою"),
+    ("new", "Нова історична картка"),
+    ("ambiguous", "Неоднозначне зіставлення"),
+]
+
+
+class HrJobHistoricalCanonical(models.Model):
+    _inherit = "hr.job"
+
+    @api.model
+    def l10n_ua_canonical_job_name(self, name):
+        """
+        Canonical display form for job names imported from
+        historical sources.
+
+        - collapse whitespace;
+        - first character uppercase;
+        - preserve the rest of the wording.
+        """
+        compact = " ".join(
+            (name or "").split()
+        ).strip()
+
+        if not compact:
+            raise ValidationError(
+                _("Назва посади не може бути порожньою.")
+            )
+
+        return (
+            compact[:1].upper()
+            + compact[1:]
+        )
+
+    @api.model
+    def l10n_ua_job_name_key(self, name):
+        return " ".join(
+            (name or "").split()
+        ).strip().casefold()
+
+    @api.model
+    def l10n_ua_find_canonical_job(
+        self,
+        source_name,
+        company=False,
+    ):
+        company = company or self.env.company
+
+        key = self.l10n_ua_job_name_key(
+            source_name
+        )
+
+        candidates = (
+            self.with_context(active_test=False)
+            .search(
+                [
+                    (
+                        "company_id",
+                        "in",
+                        [
+                            False,
+                            company.id,
+                        ],
+                    )
+                ]
+            )
+        )
+
+        matches = candidates.filtered(
+            lambda job:
+                self.l10n_ua_job_name_key(
+                    job.name
+                )
+                == key
+        )
+
+        if len(matches) > 1:
+            raise ValidationError(
+                _(
+                    "Назва посади «%(name)s» "
+                    "відповідає кільком записам "
+                    "довідника: %(jobs)s."
+                )
+                % {
+                    "name": source_name,
+                    "jobs": ", ".join(
+                        matches.mapped(
+                            "display_name"
+                        )
+                    ),
+                }
+            )
+
+        return matches[:1]
+
+    @api.model
+    def l10n_ua_get_or_create_canonical_job(
+        self,
+        source_name,
+        company=False,
+    ):
+        company = company or self.env.company
+
+        existing = (
+            self.l10n_ua_find_canonical_job(
+                source_name,
+                company=company,
+            )
+        )
+
+        if existing:
+            return existing
+
+        return self.create(
+            {
+                "name":
+                    self.l10n_ua_canonical_job_name(
+                        source_name
+                    ),
+                "company_id":
+                    company.id,
+            }
+        )
+
+
 class HrContractHistoricalReconstruction(models.Model):
     _inherit = "hr.contract"
 
@@ -57,6 +189,56 @@ class HrPersonnelOrderHistorical(models.Model):
         index=True,
     )
 
+    source_register_key = fields.Char(
+        string="Код журналу-джерела",
+        copy=False,
+        index=True,
+        help=(
+            "Стабільний машинний код джерела, "
+            "наприклад personnel-long-orders."
+        ),
+    )
+
+    source_register_name = fields.Char(
+        string="Назва журналу-джерела",
+        copy=False,
+    )
+
+    source_row = fields.Integer(
+        string="Рядок у журналі",
+        copy=False,
+        index=True,
+    )
+
+    source_key = fields.Char(
+        string="Унікальний ключ джерела",
+        copy=False,
+        index=True,
+        help=(
+            "Стабільний ключ для повторного безпечного "
+            "імпорту одного й того самого запису."
+        ),
+    )
+
+    source_status = fields.Selection(
+        SOURCE_STATUS_SELECTION,
+        string="Статус у джерелі",
+        required=True,
+        default="normal",
+        copy=False,
+        index=True,
+    )
+
+    source_text = fields.Text(
+        string="Оригінальний текст запису",
+        copy=False,
+    )
+
+    source_note = fields.Text(
+        string="Оригінальна графа «Примітки»",
+        copy=False,
+    )
+
     def write(self, vals):
         if (
             "entry_mode" in vals
@@ -68,6 +250,32 @@ class HrPersonnelOrderHistorical(models.Model):
                 _(
                     "Режим внесення можна змінювати "
                     "лише у чернетці."
+                )
+            )
+
+        source_fields = {
+            "source_register_key",
+            "source_register_name",
+            "source_row",
+            "source_key",
+            "source_status",
+            "source_text",
+            "source_note",
+        }
+
+        if (
+            source_fields.intersection(vals)
+            and self.filtered(
+                lambda order:
+                    order.state
+                    in {"posted", "cancelled"}
+            )
+        ):
+            raise UserError(
+                _(
+                    "Джерельні реквізити "
+                    "зареєстрованого історичного "
+                    "наказу змінювати не можна."
                 )
             )
 
@@ -108,6 +316,169 @@ class HrPersonnelOrderHistorical(models.Model):
 
         return super().action_post()
 
+    def _validate_historical_source_contract(self):
+        """
+        Source-backed records use strict provenance and
+        identity rules.
+
+        Legacy/manual historical drafts without source_key
+        remain supported, but the journal importer always
+        supplies source_key and therefore receives the strict
+        checks below.
+        """
+        for order in self:
+            if not order.source_key:
+                continue
+
+            missing = []
+
+            if not (
+                order.source_register_key
+                or ""
+            ).strip():
+                missing.append(
+                    "source_register_key"
+                )
+
+            if not (
+                order.source_register_name
+                or ""
+            ).strip():
+                missing.append(
+                    "source_register_name"
+                )
+
+            if order.source_row <= 0:
+                missing.append(
+                    "source_row"
+                )
+
+            if not (
+                order.source_text
+                or ""
+            ).strip():
+                missing.append(
+                    "source_text"
+                )
+
+            if missing:
+                raise ValidationError(
+                    _(
+                        "Для історичного запису "
+                        "%(number)s відсутні "
+                        "джерельні реквізити: "
+                        "%(fields)s."
+                    )
+                    % {
+                        "number": order.number,
+                        "fields":
+                            ", ".join(missing),
+                    }
+                )
+
+            if order.source_status == "annulled":
+                continue
+
+            for line in order.line_ids:
+                line_missing = []
+
+                if not (
+                    line.source_line_key
+                    or ""
+                ).strip():
+                    line_missing.append(
+                        "source_line_key"
+                    )
+
+                if not (
+                    line.source_text
+                    or ""
+                ).strip():
+                    line_missing.append(
+                        "source_text"
+                    )
+
+                if line_missing:
+                    raise ValidationError(
+                        _(
+                            "Для рядка наказу "
+                            "%(number)s відсутні "
+                            "джерельні реквізити: "
+                            "%(fields)s."
+                        )
+                        % {
+                            "number":
+                                order.number,
+                            "fields":
+                                ", ".join(
+                                    line_missing
+                                ),
+                        }
+                    )
+
+                resolution = (
+                    line.identity_resolution
+                )
+
+                if resolution in {
+                    False,
+                    "unresolved",
+                    "ambiguous",
+                }:
+                    raise ValidationError(
+                        _(
+                            "Не можна реєструвати "
+                            "%(number)s: особу "
+                            "«%(person)s» ще не "
+                            "ідентифіковано однозначно."
+                        )
+                        % {
+                            "number":
+                                order.number,
+                            "person":
+                                (
+                                    line.source_person_name
+                                    or line.employee_name
+                                    or line.employee_id.name
+                                    or "?"
+                                ),
+                        }
+                    )
+
+                if (
+                    resolution == "matched"
+                    and not line.employee_id
+                ):
+                    raise ValidationError(
+                        _(
+                            "Статус «зіставлено» "
+                            "вимагає вибраної картки "
+                            "працівника."
+                        )
+                    )
+
+                if resolution == "new":
+                    if line.action_type != "hire":
+                        raise ValidationError(
+                            _(
+                                "Нову історичну картку "
+                                "можна створити лише "
+                                "подією прийняття."
+                            )
+                        )
+
+                    if line.employee_id:
+                        raise ValidationError(
+                            _(
+                                "Для статусу «нова "
+                                "історична картка» "
+                                "employee_id має бути "
+                                "порожнім."
+                            )
+                        )
+
+        return True
+
     def action_register_historical(self):
         self._ensure_state({"draft"})
 
@@ -124,34 +495,70 @@ class HrPersonnelOrderHistorical(models.Model):
                 )
             )
 
-        self._ensure_has_lines()
-        self.mapped("line_ids")._validate_for_post()
+        self._validate_historical_source_contract()
 
         now = fields.Datetime.now()
 
-        self.write(
-            {
-                "state": "posted",
-                "posted_at": now,
-                "posted_by_id": self.env.user.id,
-            }
+        annulled = self.filtered(
+            lambda order:
+                order.source_status == "annulled"
         )
 
-        for order in self:
-            lines = order.line_ids.sorted(
-                key=lambda line: (
-                    line.effective_date,
-                    line.sequence,
-                    line.id,
-                )
+        for order in annulled:
+            order.write(
+                {
+                    "state": "cancelled",
+                    "cancelled_at": now,
+                    "cancelled_by_id":
+                        self.env.user.id,
+                    "cancellation_reason":
+                        (
+                            order.source_note
+                            or _(
+                                "Анульовано "
+                                "у первинному джерелі."
+                            )
+                        ),
+                }
             )
 
-            for line in lines:
-                line.with_context(
-                    **{ENGINE_CONTEXT_KEY: True}
-                )._apply_from_order()
+        normal = self - annulled
+
+        if normal:
+            normal._ensure_has_lines()
+
+            normal.mapped(
+                "line_ids"
+            )._validate_for_post()
+
+            normal.write(
+                {
+                    "state": "posted",
+                    "posted_at": now,
+                    "posted_by_id":
+                        self.env.user.id,
+                }
+            )
+
+            for order in normal:
+                lines = order.line_ids.sorted(
+                    key=lambda line: (
+                        line.effective_date,
+                        line.sequence,
+                        line.id,
+                    )
+                )
+
+                for line in lines:
+                    line.with_context(
+                        **{
+                            ENGINE_CONTEXT_KEY:
+                                True
+                        }
+                    )._apply_from_order()
 
         return True
+
 
 
 class HrPersonnelOrderLineHistorical(models.Model):
@@ -184,6 +591,46 @@ class HrPersonnelOrderLineHistorical(models.Model):
         index=True,
     )
 
+    source_line_key = fields.Char(
+        string="Ключ рядка джерела",
+        copy=False,
+        index=True,
+    )
+
+    source_person_name = fields.Char(
+        string="ПІБ як у джерелі",
+        copy=False,
+        index=True,
+    )
+
+    source_text = fields.Text(
+        string="Оригінальний текст фрагмента",
+        copy=False,
+    )
+
+    interpretation_note = fields.Text(
+        string="Нормалізоване тлумачення",
+        copy=False,
+        help=(
+            "Пояснює, як текст джерела "
+            "перетворено на кадрову дію. "
+            "Оригінальний текст не змінюється."
+        ),
+    )
+
+    identity_resolution = fields.Selection(
+        IDENTITY_RESOLUTION_SELECTION,
+        string="Ідентифікація особи",
+        default="unresolved",
+        copy=False,
+        index=True,
+    )
+
+    identity_match_basis = fields.Text(
+        string="Підстава зіставлення особи",
+        copy=False,
+    )
+
     @api.depends(
         "entry_mode",
         "order_type",
@@ -202,8 +649,18 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 line.action_type = line.order_type
 
     def write(self, vals):
+        protected_fields = {
+            "historical_action_type",
+            "source_line_key",
+            "source_person_name",
+            "source_text",
+            "interpretation_note",
+            "identity_resolution",
+            "identity_match_basis",
+        }
+
         if (
-            "historical_action_type" in vals
+            protected_fields.intersection(vals)
             and not self.env.context.get(
                 ENGINE_CONTEXT_KEY
             )
@@ -215,13 +672,59 @@ class HrPersonnelOrderLineHistorical(models.Model):
         ):
             raise UserError(
                 _(
-                    "Тип історичної кадрової дії "
+                    "Джерельні та інтерпретаційні "
+                    "дані історичного рядка "
                     "не можна змінювати після "
                     "реєстрації наказу."
                 )
             )
 
         return super().write(vals)
+
+    @api.constrains(
+        "order_id",
+        "source_line_key",
+    )
+    def _check_source_line_key_unique(self):
+        for line in self:
+            key = (
+                line.source_line_key
+                or ""
+            ).strip()
+
+            if not key:
+                continue
+
+            duplicate = self.search_count(
+                [
+                    (
+                        "order_id",
+                        "=",
+                        line.order_id.id,
+                    ),
+                    (
+                        "source_line_key",
+                        "=",
+                        key,
+                    ),
+                    (
+                        "id",
+                        "!=",
+                        line.id,
+                    ),
+                ]
+            )
+
+            if duplicate:
+                raise ValidationError(
+                    _(
+                        "Ключ рядка джерела "
+                        "«%s» вже використаний "
+                        "у цьому наказі."
+                    )
+                    % key
+                )
+
 
     # ========================================================
     # Temporal contract lookup
@@ -941,13 +1444,16 @@ class HrPersonnelOrderLineHistorical(models.Model):
         employee_existed = bool(employee)
 
         if not employee:
+            # Historical-only people must not appear as
+            # employees working today merely because we are
+            # currently reconstructing an old year.
             employee = Employee.create(
                 {
                     "name":
                         self.employee_name.strip(),
                     "company_id":
                         self.company_id.id,
-                    "active": True,
+                    "active": False,
                 }
             )
 
@@ -995,82 +1501,47 @@ class HrPersonnelOrderLineHistorical(models.Model):
         )
 
         date_end = self.employment_end_date
-        end_date_inferred = False
-        end_date_unresolved = False
 
-        # A real later contract gives us only a technical
-        # upper boundary. It is NOT evidence of dismissal.
-        if next_contract:
-            maximum_end = (
-                next_contract.date_start
-                - relativedelta(days=1)
+        # Never infer or manufacture the end of an old
+        # employment period. A later contract is evidence
+        # only that a later period exists, not evidence of
+        # the legal dismissal date of this one.
+        if (
+            next_contract
+            and date_end
+            and date_end >= next_contract.date_start
+        ):
+            raise ValidationError(
+                _(
+                    "Історичний трудовий період "
+                    "перетинається з наступним "
+                    "контрактом %s."
+                )
+                % next_contract.display_name
             )
 
-            if (
-                date_end
-                and date_end
-                >= next_contract.date_start
-            ):
-                raise ValidationError(
-                    _(
-                        "Історичний трудовий період "
-                        "перетинається з наступним "
-                        "контрактом %s."
-                    )
-                    % next_contract.display_name
-                )
-
-            if not date_end:
-                date_end = maximum_end
-                end_date_inferred = True
-
-        # Production currently has employee cards that carry
-        # the modern state without hr.contract. A known modern
-        # service_hire_date is therefore another technical
-        # upper boundary for an older period.
-        elif (
+        # The imported modern employee card can itself provide
+        # a known current start date. Again: validate an
+        # explicit historical end, but never infer one.
+        if (
             protected_current
             and not matches_current
+            and employee.service_hire_date
+            and employee.service_hire_date
+            > self.effective_date
+            and date_end
+            and date_end
+            >= employee.service_hire_date
         ):
-            baseline_start = (
-                employee.service_hire_date
-                if (
-                    employee.service_hire_date
-                    and employee.service_hire_date
-                    > self.effective_date
+            raise ValidationError(
+                _(
+                    "Історичний трудовий період "
+                    "перетинається з поточним "
+                    "періодом працівника, який "
+                    "починається %s."
                 )
-                else False
+                % employee.service_hire_date
             )
-
-            if baseline_start:
-                if (
-                    date_end
-                    and date_end >= baseline_start
-                ):
-                    raise ValidationError(
-                        _(
-                            "Історичний трудовий період "
-                            "перетинається з поточним "
-                            "періодом працівника, який "
-                            "починається %s."
-                        )
-                        % baseline_start
-                    )
-
-                if not date_end:
-                    date_end = (
-                        baseline_start
-                        - relativedelta(days=1)
-                    )
-                    end_date_inferred = True
-
-            elif not date_end:
-                # We know that the employee card represents
-                # today's state, but we do not know where the
-                # historical period ended. Keep it out of
-                # current-contract calculations until an
-                # actual dismissal / rehire is reconstructed.
-                end_date_unresolved = True
 
         if matches_current:
             today = fields.Date.context_today(self)
@@ -1084,14 +1555,18 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 else "close"
             )
 
+            end_date_unresolved = False
+
         elif date_end:
             contract_state = "close"
-
-        elif protected_current:
-            contract_state = "draft"
+            end_date_unresolved = False
 
         else:
-            contract_state = "open"
+            # Unknown end stays NULL. Draft keeps an
+            # unresolved historical period out of Odoo's
+            # current operational contract semantics.
+            contract_state = "draft"
+            end_date_unresolved = True
 
         personnel_number = (
             self.employee_identification_id
@@ -1138,8 +1613,9 @@ class HrPersonnelOrderLineHistorical(models.Model):
             ),
             "l10n_ua_historical_reconstruction":
                 True,
+            # 3.15 policy: never synthesize date_end.
             "l10n_ua_end_date_inferred":
-                end_date_inferred,
+                False,
             "l10n_ua_end_date_unresolved":
                 end_date_unresolved,
         }
@@ -1148,11 +1624,9 @@ class HrPersonnelOrderLineHistorical(models.Model):
             contract_vals
         )
 
-        # hr.contract initially derives job / department /
-        # calendar from today's employee card. Replace those
-        # values by historical facts. Only when this hire IS
-        # the current baseline may missing values fall back to
-        # the current card.
+        # hr.contract derives these fields from the employee
+        # on create. Historical facts must overwrite those
+        # current-card defaults.
         historical_contract_vals = {
             "department_id": (
                 self.department_id.id
@@ -1204,55 +1678,19 @@ class HrPersonnelOrderLineHistorical(models.Model):
         )
 
         if matches_current:
-            # We have now reached the documented current
-            # rehire. Attach the reconstructed contract to the
-            # existing current employee without rewriting the
-            # card's current personnel facts.
+            # Only an explicitly matched modern period may
+            # become the operational current contract.
             employee.write(
                 {
                     "contract_id": contract.id,
                 }
             )
 
-        elif not protected_current and not next_contract:
-            # A genuinely historical employee without a
-            # pre-existing modern baseline may become the
-            # latest/current state as reconstruction advances.
-            employee_vals = {
-                "company_id":
-                    self.company_id.id,
-                "active": True,
-                "service_hire_date":
-                    self.effective_date,
-                "contract_id":
-                    contract.id,
-            }
-
-            if self.employee_identification_id:
-                employee_vals[
-                    "identification_id"
-                ] = (
-                    self.employee_identification_id
-                )
-
-            if self.department_id:
-                employee_vals[
-                    "department_id"
-                ] = self.department_id.id
-
-            if self.job_id:
-                employee_vals[
-                    "job_id"
-                ] = self.job_id.id
-
-            if self.resource_calendar_id:
-                employee_vals[
-                    "resource_calendar_id"
-                ] = (
-                    self.resource_calendar_id.id
-                )
-
-            employee.write(employee_vals)
+        # For every other historical hire we intentionally do
+        # NOT write active/current personnel number/current
+        # department/current job/current hire date to
+        # hr.employee. Those are present-day operational
+        # fields, not a reconstruction scratchpad.
 
         previous = {
             "previous_department_id": False,
@@ -1433,14 +1871,10 @@ class HrPersonnelOrderLineHistorical(models.Model):
             )
         )
 
-        if (
-            not next_contract
-            and employee_vals
-            and not self._historical_protected_current_baseline(
-                employee
-            )
-        ):
-            employee.write(employee_vals)
+        # Historical backfill changes the temporal contract
+        # and immutable event ledger only. It must never
+        # rewrite today's employee card merely because no
+        # later historical year has been imported yet.
 
         self._finalize_event(
             event,
@@ -1496,13 +1930,6 @@ class HrPersonnelOrderLineHistorical(models.Model):
             contract=contract,
         )
 
-        next_contract = (
-            self._historical_next_contract(
-                employee,
-                self.effective_date,
-            )
-        )
-
         contract.write(
             {
                 "date_end":
@@ -1517,47 +1944,11 @@ class HrPersonnelOrderLineHistorical(models.Model):
             }
         )
 
-        if (
-            not next_contract
-            and not self._historical_protected_current_baseline(
-                employee
-            )
-        ):
-            description_parts = [
-                part
-                for part in (
-                    self.legal_reason,
-                    self.legal_article,
-                )
-                if part
-            ]
-
-            if self.termination_basis:
-                description_parts.append(
-                    self.termination_basis
-                )
-
-            employee_vals = {
-                "departure_date":
-                    self.effective_date,
-                "active": False,
-            }
-
-            if self.departure_reason_id:
-                employee_vals[
-                    "departure_reason_id"
-                ] = (
-                    self.departure_reason_id.id
-                )
-
-            if description_parts:
-                employee_vals[
-                    "departure_description"
-                ] = "\n".join(
-                    description_parts
-                )
-
-            employee.write(employee_vals)
+        # Do not write active/departure_date/current position
+        # to hr.employee in historical mode. The current
+        # employee card represents today's operational state.
+        # Historical dismissal facts live in the contract and
+        # immutable personnel event.
 
         self._finalize_event(
             event,
