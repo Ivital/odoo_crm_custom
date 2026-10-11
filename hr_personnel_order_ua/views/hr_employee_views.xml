@@ -32,8 +32,11 @@
                       groups="hr.group_hr_user">
                     <group>
                         <group string="Поточний трудовий стан">
-                            <field name="identification_id" string="Табельний номер"/>
-                            <field name="service_hire_date" string="Дата прийняття"/>
+                            <field name="identification_id"
+                                   string="Поточний табельний номер"/>
+                            <field name="service_hire_date"
+                                   string="Дата поточного прийняття"/>
+                            <field name="l10n_ua_current_personnel_number"/>
                             <field name="department_id"/>
                             <field name="job_id"/>
                             <field name="resource_calendar_id"/>
@@ -54,6 +57,31 @@
                     <group string="Умови праці">
                         <field name="l10n_ua_current_work_conditions"/>
                         <field name="l10n_ua_current_allowance_note"/>
+                    </group>
+
+                    <group string="Історія трудових періодів"
+                           col="1">
+                        <field name="l10n_ua_first_employment_date"/>
+
+                        <field name="contract_ids"
+                               string="Трудові періоди"
+                               nolabel="1"
+                               readonly="1">
+                            <list create="0"
+                                  edit="0"
+                                  delete="0"
+                                  default_order="date_start asc, id asc">
+                                <field name="date_start"/>
+                                <field name="date_end"/>
+                                <field name="l10n_ua_personnel_number"/>
+                                <field name="department_id"/>
+                                <field name="job_id"/>
+                                <field name="l10n_ua_work_type"/>
+                                <field name="l10n_ua_hire_order_id"/>
+                                <field name="state"
+                                       widget="badge"/>
+                            </list>
+                        </field>
                     </group>
                 </page>
             </xpath>

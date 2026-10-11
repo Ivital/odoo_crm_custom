@@ -29,6 +29,11 @@ class HrPersonnelEvent(models.Model):
         string="Працівник",
         index=True,
     )
+    employee_identification_id = fields.Char(
+        string="Табельний номер на дату події",
+        readonly=True,
+        index=True,
+    )
     company_id = fields.Many2one(
         related="order_id.company_id",
         store=True,

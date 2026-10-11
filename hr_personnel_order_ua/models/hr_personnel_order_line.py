@@ -41,7 +41,14 @@ class HrPersonnelOrderLine(models.Model):
         string="ПІБ працівника",
         help="Для наказу про прийняття, якщо картки працівника ще немає.",
     )
-    employee_identification_id = fields.Char(string="Табельний номер")
+    employee_identification_id = fields.Char(
+        string="Табельний номер для кадрової дії",
+        help=(
+            "Табельний номер працівника, що діє для цього кадрового "
+            "рішення. При повторному прийнятті може відрізнятися від "
+            "номера попереднього трудового періоду."
+        ),
+    )
 
     effective_date = fields.Date(
         string="Дата набрання чинності",
@@ -160,9 +167,14 @@ class HrPersonnelOrderLine(models.Model):
     @api.model
     def _employee_snapshot_values(self, employee):
         contract = employee.contract_id
+        personnel_number = (
+            contract.l10n_ua_personnel_number
+            if contract and contract.l10n_ua_personnel_number
+            else employee.identification_id
+        )
         return {
             "employee_name": employee.name,
-            "employee_identification_id": employee.identification_id,
+            "employee_identification_id": personnel_number,
             "previous_department_id": employee.department_id.id or False,
             "previous_job_id": employee.job_id.id or False,
             "previous_resource_calendar_id": employee.resource_calendar_id.id or False,
@@ -327,6 +339,15 @@ class HrPersonnelOrderLine(models.Model):
             "order_id": self.order_id.id,
             "order_line_id": self.id,
             "employee_id": employee.id if employee else self.employee_id.id or False,
+            "employee_identification_id": (
+                self.employee_identification_id
+                or (
+                    employee.identification_id
+                    if employee
+                    else self.employee_id.identification_id
+                )
+                or False
+            ),
             "effective_date": self._event_effective_date(),
             "status": status,
             "new_department_id": self.department_id.id or False,
@@ -417,7 +438,10 @@ class HrPersonnelOrderLine(models.Model):
         self.with_context(**{ENGINE_CONTEXT_KEY: True}).sudo().write({
             "employee_id": employee.id,
             "employee_name": employee.name,
-            "employee_identification_id": employee.identification_id,
+            "employee_identification_id": (
+                self.employee_identification_id
+                or employee.identification_id
+            ),
             "contract_id": contract.id if contract else False,
             "leave_id": leave.id if leave else False,
             "application_state": "applied",
@@ -503,6 +527,12 @@ class HrPersonnelOrderLine(models.Model):
             "wage": self.wage,
             "state": "open",
             "l10n_ua_personnel_order_line_id": self.id,
+            "l10n_ua_hire_order_line_id": self.id,
+            "l10n_ua_personnel_number": (
+                self.employee_identification_id
+                or employee.identification_id
+                or False
+            ),
             "l10n_ua_work_type": self.work_type or "main",
             "l10n_ua_hire_condition": self.hire_condition or False,
             "l10n_ua_weekly_hours": self.weekly_hours,

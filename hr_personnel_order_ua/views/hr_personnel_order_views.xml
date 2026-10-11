@@ -120,7 +120,8 @@
                                 <list>
                                     <field name="sequence" widget="handle"/>
                                     <field name="order_type" column_invisible="True"/>
-                                    <field name="employee_id"/>
+                                    <field name="employee_id"
+                                           context="{'active_test': order_type != 'hire'}"/>
                                     <field name="employee_name" column_invisible="parent.order_type != 'hire'"/>
                                     <field name="employee_identification_id" optional="show"/>
                                     <field name="effective_date"/>
@@ -143,7 +144,8 @@
                                     <field name="currency_id" invisible="1"/>
                                     <group>
                                         <group>
-                                            <field name="employee_id"/>
+                                            <field name="employee_id"
+                                           context="{'active_test': order_type != 'hire'}"/>
                                             <field name="employee_name" invisible="order_type != 'hire'"/>
                                             <field name="employee_identification_id"/>
                                         </group>

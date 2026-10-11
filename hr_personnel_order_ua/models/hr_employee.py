@@ -1,4 +1,4 @@
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 
 from .constants import HIRE_CONDITION_SELECTION, WORK_TYPE_SELECTION
 
@@ -13,6 +13,24 @@ class HrEmployee(models.Model):
     personnel_event_count = fields.Integer(
         string="Кадрова історія",
         compute="_compute_personnel_counts",
+    )
+
+    l10n_ua_first_employment_date = fields.Date(
+        string="Перше прийняття на підприємство",
+        compute="_compute_l10n_ua_first_employment_date",
+        store=True,
+        groups="hr.group_hr_user",
+        help=(
+            "Найраніша дата початку будь-якого нескасованого "
+            "трудового періоду працівника."
+        ),
+    )
+
+    l10n_ua_current_personnel_number = fields.Char(
+        related="contract_id.l10n_ua_personnel_number",
+        string="Табельний номер поточного трудового періоду",
+        readonly=True,
+        groups="hr.group_hr_user",
     )
 
     l10n_ua_current_contract_id = fields.Many2one(
@@ -96,6 +114,25 @@ class HrEmployee(models.Model):
         readonly=True,
         groups="hr.group_hr_user",
     )
+
+    @api.depends(
+        "contract_ids.date_start",
+        "contract_ids.state",
+    )
+    def _compute_l10n_ua_first_employment_date(self):
+        for employee in self:
+            contracts = employee.contract_ids.filtered(
+                lambda contract: (
+                    contract.state != "cancel"
+                    and contract.date_start
+                )
+            )
+
+            employee.l10n_ua_first_employment_date = (
+                min(contracts.mapped("date_start"))
+                if contracts
+                else False
+            )
 
     def _compute_personnel_counts(self):
         OrderLine = self.env["hr.personnel.order.line"].sudo()
