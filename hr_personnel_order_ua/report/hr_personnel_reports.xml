@@ -40,6 +40,18 @@
         <field name="binding_type">report</field>
     </record>
 
+    <record id="action_report_personnel_order_hire_appendix" model="ir.actions.report">
+        <field name="name">Внутрішній додаток до наказу про прийняття</field>
+        <field name="model">hr.personnel.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_personnel_order_ua.report_personnel_order_hire_appendix</field>
+        <field name="report_file">hr_personnel_order_ua.report_personnel_order_hire_appendix</field>
+        <field name="paperformat_id" ref="paperformat_hr_personnel_a4_portrait"/>
+        <field name="print_report_name">'Додаток до наказу про прийняття - %s' % (object.number or '')</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">report</field>
+    </record>
+
     <record id="action_report_personnel_order_p3" model="ir.actions.report">
         <field name="name">Типова форма П-3</field>
         <field name="model">hr.personnel.order</field>

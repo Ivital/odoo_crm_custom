@@ -13,6 +13,12 @@
                         class="btn-secondary"
                         groups="hr.group_hr_user"
                         invisible="order_type != 'hire'"/>
+                <button name="action_print_hire_appendix"
+                        type="object"
+                        string="Друк внутрішнього додатка"
+                        class="btn-secondary"
+                        groups="hr.group_hr_user"
+                        invisible="order_type != 'hire'"/>
                 <button name="action_print_p3"
                         type="object"
                         string="Друк П-3"

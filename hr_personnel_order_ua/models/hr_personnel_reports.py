@@ -28,6 +28,13 @@ class HrPersonnelOrderReport(models.Model):
             _("Форму П-1"),
         )
 
+    def action_print_hire_appendix(self):
+        return self._l10n_ua_print_order_form(
+            "hire",
+            "hr_personnel_order_ua.action_report_personnel_order_hire_appendix",
+            _("Внутрішній додаток до наказу про прийняття"),
+        )
+
     def action_print_p3(self):
         return self._l10n_ua_print_order_form(
             "leave",

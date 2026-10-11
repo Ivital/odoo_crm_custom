@@ -36,50 +36,72 @@
                         </tr>
                     </table>
 
-                    <table style="width:100%; margin-top:10px; border-collapse:collapse; text-align:center; font-size:7.4pt;">
+                    <table style="width:100%; margin-top:8px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:3px; width:12%;">Дата заповнення</th>
-                            <th style="border:1px solid #000; padding:3px; width:11%;">Табельний номер</th>
-                            <th style="border:1px solid #000; padding:3px; width:24%;">Індивідуальний ідентифікаційний номер</th>
-                            <th style="border:1px solid #000; padding:3px; width:11%;">Стать</th>
-                            <th style="border:1px solid #000; padding:3px; width:18%;">Вид роботи</th>
-                            <th class="p2-photo-cell"
-                                rowspan="2"
-                                style="border:1px solid #000; width:24%; height:92px; vertical-align:middle; text-align:center; padding:3px;">
+                            <td style="width:76%; vertical-align:top;">
+                                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:7.2pt;">
+                                    <tr>
+                                        <th style="border:1px solid #000; padding:3px; width:15%;">
+                                            Дата заповнення
+                                        </th>
+                                        <th style="border:1px solid #000; padding:3px; width:15%;">
+                                            Табельний номер
+                                        </th>
+                                        <th style="border:1px solid #000; padding:3px; width:28%;">
+                                            Індивідуальний ідентифікаційний номер
+                                        </th>
+                                        <th style="border:1px solid #000; padding:3px; width:18%;">
+                                            Стать<br/>
+                                            <span style="font-weight:normal;">
+                                                (чоловіча, жіноча)
+                                            </span>
+                                        </th>
+                                        <th style="border:1px solid #000; padding:3px; width:24%;">
+                                            Вид роботи<br/>
+                                            <span style="font-weight:normal;">
+                                                (основна, за сумісництвом)
+                                            </span>
+                                        </th>
+                                    </tr>
+
+                                    <tr style="height:29px;">
+                                        <td style="border:1px solid #000; padding:3px;">
+                                            <span t-esc="(employee.l10n_ua_p2_card_date or employee.service_hire_date).strftime('%d.%m.%Y') if (employee.l10n_ua_p2_card_date or employee.service_hire_date) else ''"/>
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px;">
+                                            <span t-esc="employee.identification_id or ''"/>
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px;">
+                                            <span t-esc="employee.l10n_ua_rnokpp or ''"/>
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px;">
+                                            <span t-esc="employee._l10n_ua_report_gender_label()"/>
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px;">
+                                            <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type')"/>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="text-align:center; font-size:12.5pt; font-weight:bold; margin-top:11px;">
+                                    ОСОБОВА КАРТКА ПРАЦІВНИКА
+                                </div>
+                            </td>
+
+                            <td class="p2-photo-cell"
+                                style="width:24%; border:1px solid #000; height:102px; vertical-align:middle; text-align:center; padding:3px;">
                                 <t t-if="report_photo">
                                     <img t-att-src="image_data_uri(report_photo)"
-                                         style="max-width:70px; max-height:88px;"/>
+                                         style="max-width:70px; max-height:96px;"/>
                                 </t>
                                 <t t-else="">
                                     <div style="font-size:7pt;">
                                         Місце для фотокартки
                                     </div>
                                 </t>
-                            </th>
-                        </tr>
-                        <tr>
-                            <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="(employee.l10n_ua_p2_card_date or employee.service_hire_date).strftime('%d.%m.%Y') if (employee.l10n_ua_p2_card_date or employee.service_hire_date) else ''"/>
-                            </td>
-                            <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="employee.identification_id or ''"/>
-                            </td>
-                            <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="employee.l10n_ua_rnokpp or ''"/>
-                            </td>
-                            <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="employee._l10n_ua_report_gender_label()"/>
-                            </td>
-                            <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type')"/>
                             </td>
                         </tr>
                     </table>
-
-                    <div style="text-align:center; font-size:13pt; font-weight:bold; margin-top:9px;">
-                        ОСОБОВА КАРТКА ПРАЦІВНИКА №
-                        <span t-esc="employee.l10n_ua_p2_card_number or ''"/>
-                    </div>
 
                     <div style="font-weight:bold; margin-top:12px;">І. ЗАГАЛЬНІ ВІДОМОСТІ</div>
 
@@ -100,33 +122,60 @@
                         <strong t-esc="employee._l10n_ua_report_selection_label('certificate')"/>
                     </div>
 
-                    <table style="width:100%; margin-top:3px; border-collapse:collapse;">
+                    <table class="p2-education-table"
+                           style="width:100%; margin-top:3px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:28%;">
+                            <th style="border:1px solid #000; padding:2px; width:50%;">
                                 Назва освітнього закладу
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:20%;">
+                            <th style="border:1px solid #000; padding:2px; width:35%;">
                                 Диплом (свідоцтво), серія, номер
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:10%;">
+                            <th style="border:1px solid #000; padding:2px; width:15%;">
                                 Рік закінчення
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:22%;">
-                                Спеціальність (професія)
-                            </th>
-                            <th style="border:1px solid #000; padding:2px; width:20%;">
-                                Кваліфікація / форма навчання
-                            </th>
                         </tr>
-                        <tr style="height:27px;">
-                            <td style="border:1px solid #000; padding:3px;">
+
+                        <tr style="height:23px;">
+                            <td style="border:1px solid #000; padding:2px;">
                                 <span t-esc="employee.study_school or ''"/>
                             </td>
                             <td style="border:1px solid #000;"></td>
                             <td style="border:1px solid #000;"></td>
-                            <td style="border:1px solid #000; padding:3px;">
+                        </tr>
+
+                        <tr style="height:21px;">
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
+                        </tr>
+
+                        <tr>
+                            <th style="border:1px solid #000; padding:2px;">
+                                Спеціальність (професія) за дипломом (свідоцтвом)
+                            </th>
+                            <th style="border:1px solid #000; padding:2px;">
+                                Кваліфікація за дипломом (свідоцтвом)
+                            </th>
+                            <th style="border:1px solid #000; padding:2px;">
+                                Форма навчання<br/>
+                                <span style="font-weight:normal;">
+                                    (денна, вечірня, заочна)
+                                </span>
+                            </th>
+                        </tr>
+
+                        <tr style="height:23px;">
+                            <td style="border:1px solid #000; padding:2px;">
                                 <span t-esc="employee.study_field or ''"/>
                             </td>
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
+                        </tr>
+
+                        <tr style="height:21px;">
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
                             <td style="border:1px solid #000;"></td>
                         </tr>
                     </table>
@@ -298,19 +347,31 @@
                         ІІІ. ПРОФЕСІЙНА ОСВІТА НА ВИРОБНИЦТВІ
                         (ЗА РАХУНОК ПІДПРИЄМСТВА-РОБОТОДАВЦЯ)
                     </div>
-                    <table style="width:100%; margin-top:4px; border-collapse:collapse;">
+                    <table class="p2-professional-education-table"
+                           style="width:100%; margin-top:4px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:10%;">Дата</th>
-                            <th style="border:1px solid #000; padding:2px; width:22%;">Назва структурного підрозділу</th>
-                            <th style="border:1px solid #000; padding:2px; width:15%;">Період навчання</th>
-                            <th style="border:1px solid #000; padding:2px; width:15%;">Вид навчання</th>
-                            <th style="border:1px solid #000; padding:2px; width:15%;">Форма навчання</th>
-                            <th style="border:1px solid #000; padding:2px; width:23%;">
-                                Документ, що посвідчує професійну освіту
+                            <th style="border:1px solid #000; padding:3px; width:9%;">
+                                Дата
+                            </th>
+                            <th style="border:1px solid #000; padding:3px; width:21%;">
+                                Назва структурного підрозділу
+                            </th>
+                            <th style="border:1px solid #000; padding:3px; width:14%;">
+                                Період навчання
+                            </th>
+                            <th style="border:1px solid #000; padding:3px; width:14%;">
+                                Вид навчання
+                            </th>
+                            <th style="border:1px solid #000; padding:3px; width:14%;">
+                                Форма навчання
+                            </th>
+                            <th style="border:1px solid #000; padding:3px; width:28%;">
+                                Назва документа, що посвідчує професійну освіту, ким виданий
                             </th>
                         </tr>
-                        <t t-foreach="[0, 1, 2, 3]" t-as="row">
-                            <tr style="height:27px;">
+
+                        <t t-foreach="[0, 1, 2]" t-as="row">
+                            <tr style="height:36px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -322,28 +383,47 @@
                     </table>
 
                     <div style="font-weight:bold; margin-top:12px;">IV. ПРИЗНАЧЕННЯ І ПЕРЕВЕДЕННЯ</div>
-                    <table style="width:100%; margin-top:4px; border-collapse:collapse;">
+                    <table class="p2-appointments-table"
+                           style="width:100%; margin-top:4px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:10%;">Дата</th>
-                            <th style="border:1px solid #000; padding:2px; width:25%;">
-                                Назва структурного підрозділу
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:9%;">
+                                Дата
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:24%;">
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:21%;">
+                                Назва структурного підрозділу (код)
+                            </th>
+                            <th colspan="2"
+                                style="border:1px solid #000; padding:2px; width:27%;">
                                 Професія, посада
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:10%;">Код за КП</th>
-                            <th style="border:1px solid #000; padding:2px; width:12%;">
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:13%;">
                                 Розряд (оклад)
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:13%;">
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:17%;">
                                 Підстава, наказ №
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:6%;">Підпис</th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:13%;">
+                                Підпис працівника
+                            </th>
+                        </tr>
+
+                        <tr>
+                            <th style="border:1px solid #000; padding:2px; width:19%;">
+                                назва
+                            </th>
+                            <th style="border:1px solid #000; padding:2px; width:8%;">
+                                код за КП*
+                            </th>
                         </tr>
 
                         <t t-if="events">
                             <t t-foreach="events" t-as="event">
-                                <tr>
+                                <tr style="height:29px;">
                                     <td style="border:1px solid #000; padding:2px; text-align:center;">
                                         <span t-esc="event.effective_date.strftime('%d.%m.%Y') if event.effective_date else ''"/>
                                     </td>
@@ -374,8 +454,9 @@
                                 </tr>
                             </t>
                         </t>
+
                         <t t-else="">
-                            <tr>
+                            <tr style="height:29px;">
                                 <td style="border:1px solid #000; padding:2px; text-align:center;">
                                     <span t-esc="employee.service_hire_date.strftime('%d.%m.%Y') if employee.service_hire_date else ''"/>
                                 </td>
@@ -407,6 +488,18 @@
                                 <td style="border:1px solid #000;"></td>
                             </tr>
                         </t>
+
+                        <t t-foreach="[0, 1, 2]" t-as="row">
+                            <tr style="height:29px;">
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                            </tr>
+                        </t>
                     </table>
 
                     <div style="font-size:7pt; margin-top:3px;">
@@ -414,17 +507,39 @@
                     </div>
 
                     <div style="font-weight:bold; margin-top:12px;">V. ВІДПУСТКИ</div>
-                    <table style="width:100%; margin-top:4px; border-collapse:collapse;">
+                    <table class="p2-leaves-table"
+                           style="width:100%; margin-top:4px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:27%;">Вид відпустки</th>
-                            <th style="border:1px solid #000; padding:2px; width:22%;">За який період</th>
-                            <th style="border:1px solid #000; padding:2px; width:13%;">Початок</th>
-                            <th style="border:1px solid #000; padding:2px; width:13%;">Закінчення</th>
-                            <th style="border:1px solid #000; padding:2px; width:25%;">Підстава, наказ №</th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:27%;">
+                                Вид відпустки
+                            </th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:20%;">
+                                За який період
+                            </th>
+                            <th colspan="2"
+                                style="border:1px solid #000; padding:2px; width:26%;">
+                                Дата
+                            </th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; padding:2px; width:27%;">
+                                Підстава, наказ №
+                            </th>
                         </tr>
+
+                        <tr>
+                            <th style="border:1px solid #000; padding:2px; width:13%;">
+                                початку відпустки
+                            </th>
+                            <th style="border:1px solid #000; padding:2px; width:13%;">
+                                закінчення відпустки
+                            </th>
+                        </tr>
+
                         <t t-if="leaves">
                             <t t-foreach="leaves" t-as="leave">
-                                <tr>
+                                <tr style="height:29px;">
                                     <td style="border:1px solid #000; padding:2px;">
                                         <span t-esc="leave.holiday_status_id.name or ''"/>
                                     </td>
@@ -453,16 +568,15 @@
                                 </tr>
                             </t>
                         </t>
-                        <t t-else="">
-                            <t t-foreach="[0, 1, 2]" t-as="row">
-                                <tr style="height:27px;">
-                                    <td style="border:1px solid #000;"></td>
-                                    <td style="border:1px solid #000;"></td>
-                                    <td style="border:1px solid #000;"></td>
-                                    <td style="border:1px solid #000;"></td>
-                                    <td style="border:1px solid #000;"></td>
-                                </tr>
-                            </t>
+
+                        <t t-foreach="[0, 1, 2, 3]" t-as="row">
+                            <tr style="height:29px;">
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000;"></td>
+                            </tr>
                         </t>
                     </table>
 

@@ -117,7 +117,6 @@ class TestPersonnelReports(TransactionCase):
             )
 
         forced_two_page_reports = {
-            "hr_personnel_order_ua.action_report_personnel_order_p1",
             "hr_personnel_order_ua.action_report_personal_card_p2",
         }
 
@@ -176,14 +175,61 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про прийняття на роботу", html)
         self.assertIn("Працівник Для Друку Тестовий", html)
+        self.assertIn(
+            'умови праці (згідно атестації робочого місця)',
+            html,
+        )
+        self.assertIn("грн.", html)
+        self.assertIn("коп.", html)
+        self.assertNotIn("Типова форма № П-1 — друга сторона", html)
+        self.assertNotIn("Результати медичного огляду", html)
         self.assertNotIn("☐", html)
         self.assertNotIn("☒", html)
-        self.assertEqual(html.count("l10n-ua-checkbox"), 10)
+        self.assertEqual(html.count("l10n-ua-checkbox"), 15)
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personnel_order_p1",
             order,
             html,
-            expected_pages=2,
+            expected_pages=1,
+        )
+
+    def test_hire_internal_appendix_action_and_html(self):
+        order = self._order(
+            "hire",
+            {
+                "department_id": self.department.id,
+                "job_id": self.job.id,
+                "wage": 25000.0,
+                "work_type": "main",
+                "weekly_hours": 40.0,
+            },
+        )
+
+        action = order.action_print_hire_appendix()
+
+        self.assertEqual(
+            action["report_name"],
+            "hr_personnel_order_ua.report_personnel_order_hire_appendix",
+        )
+
+        html = self._render(
+            "hr_personnel_order_ua.action_report_personnel_order_hire_appendix",
+            order,
+        )
+
+        self.assertIn("ВНУТРІШНІЙ ДОДАТОК", html)
+        self.assertIn(
+            "Не є другою стороною типової форми № П-1",
+            html,
+        )
+        self.assertIn("Результати медичного огляду", html)
+        self.assertIn("Результати проходження інструктажів", html)
+
+        self._assert_standard_pdf_layout(
+            "hr_personnel_order_ua.action_report_personnel_order_hire_appendix",
+            order,
+            html,
+            expected_pages=1,
         )
 
     def test_p3_report_action_and_html(self):
@@ -250,6 +296,11 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про припинення трудового договору", html)
         self.assertIn("ст. 38 КЗпП України", html)
+        self.assertIn("Вихідна допомога", html)
+        self.assertIn("грн.", html)
+        self.assertIn("коп.", html)
+        self.assertIn("Додатково:", html)
+        self.assertEqual(html.count("l10n-ua-checkbox"), 1)
 
         p4_text = " ".join(
             lxml_html.fromstring(html).text_content().split()
@@ -287,14 +338,35 @@ class TestPersonnelReports(TransactionCase):
             self.employee,
         )
         self.assertIn("ОСОБОВА КАРТКА ПРАЦІВНИКА", html)
-        self.assertIn("P2-TEST-001", html)
         self.assertIn("Кривий Ріг", html)
         self.assertIn("Чоловіча", html)
         self.assertIn("Україна", html)
+        self.assertIn("Стать", html)
+        self.assertIn("(чоловіча, жіноча)", html)
+        self.assertIn("Вид роботи", html)
+        self.assertIn("(основна, за сумісництвом)", html)
+        self.assertIn(
+            "Спеціальність (професія) за дипломом (свідоцтвом)",
+            html,
+        )
+        self.assertIn(
+            "Кваліфікація за дипломом (свідоцтвом)",
+            html,
+        )
+        self.assertIn(
+            "(денна, вечірня, заочна)",
+            html,
+        )
+        self.assertIn(
+            "Назва документа, що посвідчує професійну освіту, ким виданий",
+            html,
+        )
+        self.assertIn("Підпис працівника", html)
+        self.assertNotIn("Кваліфікація / форма навчання", html)
 
         p2_root = lxml_html.fromstring(html)
         photo_cells = p2_root.xpath(
-            "//th[contains("
+            "//*[contains("
             "concat(' ', normalize-space(@class), ' '), "
             "' p2-photo-cell '"
             ")]"

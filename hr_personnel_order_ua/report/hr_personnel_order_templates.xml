@@ -14,20 +14,23 @@
                        t-value="line.employee_name or line.employee_id.name or ''"/>
                     <t t-set="signer_name"
                        t-value="order.signer_id.name or company.l10n_ua_manager_partner_id.name or ''"/>
-                    <t t-set="signer_position"
-                       t-value="order.signer_id.job_title or order.signer_id.job_id.name or company.l10n_ua_manager_position or 'Керівник підприємства'"/>
+                    <t t-set="wage_text"
+                       t-value="'%.2f' % (line.wage or 0.0)"/>
 
                     <div class="page"
-                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.2;">
+                         style="font-family:'Times New Roman'; font-size:9.8pt; line-height:1.16;">
+
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
-                                <td style="width:62%; vertical-align:top;">
-                                    <strong t-esc="company.name"/>
-                                    <div style="font-size:8pt;">
+                                <td style="width:61%; vertical-align:top;">
+                                    <div style="border-bottom:1px solid #000; min-height:18px;">
+                                        <strong t-esc="company.name"/>
+                                    </div>
+                                    <div style="font-size:7.5pt; text-align:center;">
                                         найменування підприємства (установи, організації)
                                     </div>
                                 </td>
-                                <td style="width:38%; vertical-align:top; text-align:left;">
+                                <td style="width:39%; vertical-align:top; padding-left:16px;">
                                     <strong>Типова форма № П-1</strong><br/>
                                     ЗАТВЕРДЖЕНО<br/>
                                     Наказ Держкомстату України<br/>
@@ -36,193 +39,328 @@
                             </tr>
                         </table>
 
-                        <div style="text-align:center; margin-top:20px;">
-                            <div style="font-size:14pt; font-weight:bold;">
+                        <div style="text-align:center; margin-top:14px;">
+                            <div style="font-size:13pt; font-weight:bold;">
                                 НАКАЗ (РОЗПОРЯДЖЕННЯ)
                                 № <span t-esc="order.number"/>
                                 від
                                 <span t-esc="order.order_date.strftime('%d.%m.%Y') if order.order_date else ''"/>
                             </div>
-                            <div style="font-size:12pt; font-weight:bold; margin-top:4px;">
+                            <div style="font-size:11pt; font-weight:bold; margin-top:2px;">
                                 про прийняття на роботу
                             </div>
                         </div>
 
-                        <table style="width:100%; margin-top:18px; border-collapse:collapse;">
+                        <div style="margin-top:14px; border-bottom:1px solid #000; min-height:19px; text-align:center;">
+                            <strong t-esc="employee_name"/>
+                        </div>
+                        <div style="font-size:7.5pt; text-align:center;">
+                            (прізвище, ім’я, по батькові)
+                        </div>
+
+                        <table style="width:100%; margin-top:8px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:76%; border-bottom:1px solid #000; text-align:center;">
-                                    <strong t-esc="employee_name"/>
+                                <td style="width:73%; vertical-align:top;">
+                                    <div>
+                                        Прийняти на роботу з
+                                        <strong t-esc="line.effective_date.strftime('%d.%m.%Y') if line.effective_date else ''"/>
+                                    </div>
+                                    <div style="margin-top:3px;">
+                                        до
+                                        <strong t-esc="line.employment_end_date.strftime('%d.%m.%Y') if line.employment_end_date else '________________'"/>
+                                    </div>
+                                    <div style="font-size:7.3pt; margin-left:20px;">
+                                        (заповнюється у разі строкового трудового договору (контракту))
+                                    </div>
                                 </td>
-                                <td rowspan="2" style="width:24%; padding-left:12px; vertical-align:bottom;">
-                                    Табельний номер<br/>
-                                    <div style="border:1px solid #000; min-height:24px; padding:4px; text-align:center;">
+
+                                <td style="width:27%; padding-left:12px; vertical-align:top;">
+                                    <div style="text-align:center;">
+                                        Табельний номер
+                                    </div>
+                                    <div style="border:1px solid #000; min-height:24px; padding:3px; text-align:center;">
                                         <strong t-esc="line.employee_identification_id or line.employee_id.identification_id or ''"/>
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td style="font-size:8pt; text-align:center;">
-                                    (прізвище, ім’я, по батькові)
-                                </td>
-                            </tr>
                         </table>
 
-                        <div style="margin-top:12px;">
-                            Прийняти на роботу з
-                            <strong t-esc="line.effective_date.strftime('%d.%m.%Y') if line.effective_date else ''"/>
-                            <t t-if="line.employment_end_date">
-                                до
-                                <strong t-esc="line.employment_end_date.strftime('%d.%m.%Y')"/>
-                            </t>
-                        </div>
-                        <div style="font-size:8pt; margin-left:155px;">
-                            (дата закінчення зазначається для строкового трудового договору)
-                        </div>
-
-                        <div style="margin-top:10px; border-bottom:1px solid #000; text-align:center; min-height:18px;">
+                        <div style="margin-top:6px; border-bottom:1px solid #000; text-align:center; min-height:18px;">
                             <span t-esc="line.department_id.name or ''"/>
                         </div>
-                        <div style="font-size:8pt; text-align:center;">назва структурного підрозділу</div>
+                        <div style="font-size:7.3pt; text-align:center;">
+                            назва структурного підрозділу
+                        </div>
 
-                        <div style="margin-top:8px; border-bottom:1px solid #000; text-align:center; min-height:18px;">
+                        <div style="margin-top:5px; border-bottom:1px solid #000; text-align:center; min-height:18px;">
                             <span t-esc="line.job_id.name or ''"/>
                             <t t-if="line.professional_category_id">
                                 , <span t-esc="line.professional_category_id.name"/>
                             </t>
                         </div>
-                        <div style="font-size:8pt; text-align:center;">
+                        <div style="font-size:7.3pt; text-align:center;">
                             назва професії (посади), кваліфікація
                         </div>
 
-                        <table style="width:100%; margin-top:13px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:8px; border-collapse:collapse;">
                             <tr>
-                                <th style="width:50%; text-align:center; padding-bottom:5px;">
+                                <th style="width:50%; padding:2px 5px; vertical-align:top;">
                                     умови прийняття на роботу
+                                    <div style="font-size:7pt; font-weight:normal;">
+                                        (необхідне відмітити позначкою "х")
+                                    </div>
                                 </th>
-                                <th style="width:50%; text-align:center; padding-bottom:5px;">
+                                <th style="width:50%; padding:2px 5px; vertical-align:top;">
                                     умови роботи
+                                    <div style="font-size:7pt; font-weight:normal;">
+                                        (необхідне відмітити позначкою "х")
+                                    </div>
                                 </th>
                             </tr>
+
                             <tr>
-                                <td style="vertical-align:top; padding-right:10px;">
+                                <td style="vertical-align:top; padding-right:9px;">
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'competition' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'competition' else ''"/>
                                         на конкурсній основі
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'contract' else ''"/>
-                                        за умовами контракту
-                                        <t t-if="line.employment_end_date">
-                                            до <span t-esc="line.employment_end_date.strftime('%d.%m.%Y')"/>
-                                        </t>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'contract' else ''"/>
+                                        за умовами контракту до
+                                        <span t-esc="line.employment_end_date.strftime('%d.%m.%Y') if line.employment_end_date else '____________'"/>
                                     </div>
+                                    <div style="font-size:7pt; margin-left:15px;">
+                                        у разі необхідності вказати дату (дд.мм.рррр.)
+                                    </div>
+
                                     <div>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.probation_months else ''"/>
                                         зі строком випробування
-                                        <strong t-esc="line.probation_months or ''"/>
+                                        <strong t-esc="line.probation_months or '____'"/>
                                         місяців
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'fixed_work' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'fixed_work' else ''"/>
                                         на час виконання певної роботи
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'replacement' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'replacement' else ''"/>
                                         на період відсутності основного працівника
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'personnel_reserve' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'personnel_reserve' else ''"/>
                                         із кадрового резерву
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'internship' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'internship' else ''"/>
                                         за результатами успішного стажування
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'transfer' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'transfer' else ''"/>
                                         переведення
                                     </div>
+
                                     <div>
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.hire_condition == 'other' else ''"/>
-                                        інша умова
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.hire_condition == 'other' else ''"/>
+                                        <span t-esc="line.note or '________________________________'"/>
                                     </div>
                                 </td>
-                                <td style="vertical-align:top; padding-left:10px;">
+
+                                <td style="vertical-align:top; padding-left:9px;">
                                     <div>
                                         робота:
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.work_type == 'main' else ''"/>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.work_type == 'main' else ''"/>
                                         основна
+
                                         &#160;&#160;
-                                        <span class="l10n-ua-checkbox" style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;" t-esc="'X' if line.work_type == 'part_time' else ''"/>
+
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.work_type == 'part_time' else ''"/>
                                         за сумісництвом
                                     </div>
-                                    <div style="margin-top:5px;">
-                                        умови праці:
-                                        <span t-esc="line.work_conditions or '________________________________________'"/>
+
+                                    <div style="margin-top:4px;">
+                                        умови праці (згідно атестації робочого місця):
                                     </div>
-                                    <div style="margin-top:5px;">
-                                        тривалість робочого дня (тижня):
+                                    <div style="border-bottom:1px solid #000; min-height:17px;"
+                                         t-esc="line.work_conditions or ''"/>
+                                    <div style="border-bottom:1px solid #000; min-height:17px;"></div>
+
+                                    <div style="margin-top:3px;">
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                              t-esc="'X' if line.weekly_hours else ''"/>
+                                        тривалість робочого дня (тижня)
                                         <strong t-esc="('%g' % line.weekly_hours) if line.weekly_hours else '____'"/>
-                                        год.
+                                        год. ____ хв.
                                     </div>
-                                    <div style="margin-top:10px; min-height:34px; border-bottom:1px solid #000;">
-                                        <span t-esc="line.allowance_note or ''"/>
+
+                                    <div>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"/>
+                                        тривалість робочого дня (тижня) при роботі
+                                        з неповним робочим часом __________ год.
+                                    </div>
+
+                                    <div>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"/>
+                                        ______________________________________
+                                    </div>
+
+                                    <div>
+                                        <span class="l10n-ua-checkbox"
+                                              style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"/>
+                                        ______________________________________
                                     </div>
                                 </td>
                             </tr>
                         </table>
 
-                        <table style="width:100%; margin-top:14px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:6px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:42%;">оклад (тарифна ставка)</td>
-                                <td style="width:22%; border-bottom:1px solid #000; text-align:center;">
-                                    <strong t-esc="'%.2f' % (line.wage or 0.0)"/>
+                                <td style="width:38%;">оклад (тарифна ставка)</td>
+                                <td style="width:21%; border-bottom:1px solid #000; text-align:center;">
+                                    <strong t-esc="wage_text.split('.')[0]"/>
                                 </td>
-                                <td style="width:36%;">
-                                    <span t-esc="'грн.' if line.currency_id and line.currency_id.name == 'UAH' else (line.currency_id.name if line.currency_id else 'грн.')"/>
+                                <td style="width:9%;">грн.</td>
+                                <td style="width:14%; border-bottom:1px solid #000; text-align:center;">
+                                    <strong t-esc="wage_text.split('.')[1]"/>
+                                </td>
+                                <td style="width:18%;">коп.</td>
+                            </tr>
+                        </table>
+
+                        <table style="width:100%; margin-top:5px; border-collapse:collapse; font-size:8.8pt;">
+                            <tr>
+                                <td style="width:50%;">
+                                    надбавка за _______________________ ______ %
+                                </td>
+                                <td style="width:50%;">
+                                    надбавка за _______________________ ______ %
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    надбавка за _______________________ ______ %
+                                </td>
+                                <td>
+                                    надбавка за _______________________ ______ %
                                 </td>
                             </tr>
                         </table>
 
-                        <div style="margin-top:8px;">
-                            Надбавки / доплати:
-                            <span t-esc="line.allowance_note or '____________________________________________'"/>
+                        <div style="margin-top:3px;">
+                            доплата
+                            <span style="display:inline-block; width:120px; border-bottom:1px solid #000;"></span>
+                            грн.
+                            <span style="display:inline-block; width:48px; border-bottom:1px solid #000;"></span>
+                            коп.
                         </div>
 
-                        <table style="width:100%; margin-top:34px; border-collapse:collapse;">
+                        <div t-if="line.allowance_note"
+                             style="font-size:7.5pt; margin-top:3px;">
+                            Примітка до надбавок / доплат:
+                            <span t-esc="line.allowance_note"/>
+                        </div>
+
+                        <table style="width:100%; margin-top:15px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:33%;">
-                                    <span t-esc="signer_position"/>
+                                <td style="width:34%;">
+                                    Керівник підприємства<br/>
+                                    <span style="font-size:7.3pt;">
+                                        (установи, організації)
+                                    </span>
                                 </td>
-                                <td style="width:27%; text-align:center;">
+                                <td style="width:26%; text-align:center;">
                                     _____________________<br/>
-                                    <span style="font-size:8pt;">(підпис)</span>
+                                    <span style="font-size:7.3pt;">(підпис)</span>
                                 </td>
                                 <td style="width:40%; text-align:center;">
                                     <span t-esc="signer_name or '____________________________'"/>
+                                    <br/>
+                                    <span style="font-size:7.3pt;">
+                                        (Прізвище, ім’я, по батькові)
+                                    </span>
                                 </td>
                             </tr>
                         </table>
 
-                        <table style="width:100%; margin-top:28px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:12px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:30%;">З наказом (розпорядженням)<br/>ознайомлений</td>
-                                <td style="width:32%; text-align:center;">
-                                    _____________________<br/>
-                                    <span style="font-size:8pt;">(підпис працівника)</span>
+                                <td style="width:30%;">
+                                    З наказом (розпорядженням)<br/>
+                                    ознайомлений
                                 </td>
-                                <td style="width:38%; text-align:center;">
+                                <td style="width:30%; text-align:center;">
+                                    _____________________<br/>
+                                    <span style="font-size:7.3pt;">(підпис працівника)</span>
+                                </td>
+                                <td style="width:40%; text-align:center;">
                                     «_____» ______________ 20___ р.
                                 </td>
                             </tr>
                         </table>
                     </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_personnel_order_hire_appendix">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="order">
+                <div class="article"
+                     t-foreach="order.line_ids"
+                     t-as="line"
+                     t-att-data-oe-model="order._name"
+                     t-att-data-oe-id="order.id"
+                     t-att-data-oe-lang="order.env.context.get('lang')">
 
                     <t t-set="medical"
                        t-value="line.employee_id._l10n_ua_report_latest_medical_exam() if line.employee_id else False"/>
+
                     <div class="page"
-                         style="page-break-before:always; font-family:'Times New Roman'; font-size:10.5pt; line-height:1.35;">
-                        <div style="font-weight:bold; text-align:center; margin-bottom:18px;">
-                            Типова форма № П-1 — друга сторона
+                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.35;">
+
+                        <div style="font-weight:bold; text-align:center; font-size:13pt;">
+                            ВНУТРІШНІЙ ДОДАТОК
+                        </div>
+                        <div style="text-align:center; margin-top:3px; margin-bottom:18px;">
+                            до наказу про прийняття на роботу
+                            № <strong t-esc="order.number"/>
+                        </div>
+
+                        <div style="font-size:8pt; text-align:center; margin-bottom:18px;">
+                            Внутрішній кадровий аркуш підприємства.
+                            Не є другою стороною типової форми № П-1.
                         </div>
 
                         <div style="margin-bottom:12px;">
@@ -230,6 +368,7 @@
                             <span style="border-bottom:1px solid #000; padding:0 8px;"
                                   t-esc="line.job_id.name or ''"/>
                         </div>
+
                         <div style="margin-bottom:12px;">
                             По тарифному розряду
                             <span style="border-bottom:1px solid #000; padding:0 8px;"
@@ -238,23 +377,32 @@
                             <span style="border-bottom:1px solid #000; padding:0 8px;"
                                   t-esc="'%.2f' % (line.wage or 0.0)"/>
                         </div>
+
                         <div style="margin-bottom:12px;">
                             З випробувальним терміном на
                             <span style="border-bottom:1px solid #000; padding:0 8px;"
                                   t-esc="('%s місяців' % line.probation_months) if line.probation_months else ''"/>
                         </div>
+
                         <div style="margin-bottom:12px;">
                             Начальник відділу, дільниці
                             <span style="border-bottom:1px solid #000; padding:0 8px;"
                                   t-esc="line.department_id.manager_id.name or ''"/>
                         </div>
-                        <div style="margin-bottom:16px;">«___»______________20__ року</div>
+
+                        <div style="margin-bottom:16px;">
+                            «___»______________20__ року
+                        </div>
+
                         <div style="margin-bottom:16px;">
                             З умовами праці згоден _________________________
                             &#160;&#160; «___»______________20__ року
                         </div>
 
-                        <div style="font-weight:bold; margin-top:18px;">Результати медичного огляду</div>
+                        <div style="font-weight:bold; margin-top:18px;">
+                            Результати медичного огляду
+                        </div>
+
                         <div style="min-height:100px; border-bottom:1px solid #000; padding-top:6px;">
                             <t t-if="medical">
                                 <div>
@@ -277,21 +425,32 @@
                         <div style="font-weight:bold; margin-top:24px;">
                             Результати проходження інструктажів
                         </div>
+
                         <div style="margin-top:10px;">
                             Проходження інструктажу з техніки безпеки,
                             протипожежному мінімуму
                         </div>
+
                         <div style="height:130px; border-bottom:1px solid #000;"></div>
+
                         <div style="margin-top:8px;">
                             «___»______________20__ року
-                            <span style="float:right;">Підпис __________________________</span>
+                            <span style="float:right;">
+                                Підпис __________________________
+                            </span>
                         </div>
 
-                        <div style="font-weight:bold; margin-top:25px;">Інші інструктажі</div>
+                        <div style="font-weight:bold; margin-top:25px;">
+                            Інші інструктажі
+                        </div>
+
                         <div style="height:120px; border-bottom:1px solid #000;"></div>
+
                         <div style="margin-top:8px;">
                             «___»______________20__ року
-                            <span style="float:right;">Підпис __________________________</span>
+                            <span style="float:right;">
+                                Підпис __________________________
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -472,19 +631,24 @@
                     <t t-set="company" t-value="order.company_id"/>
                     <t t-set="signer_name"
                        t-value="order.signer_id.name or company.l10n_ua_manager_partner_id.name or ''"/>
-                    <t t-set="signer_position"
-                       t-value="order.signer_id.job_title or order.signer_id.job_id.name or company.l10n_ua_manager_position or 'Керівник підприємства'"/>
+                    <t t-set="severance_text"
+                       t-value="'%.2f' % (line.severance_amount or 0.0)"/>
+
                     <div class="page"
-                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.3;">
+                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.28;">
+
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="width:60%; vertical-align:top;">
-                                    <strong t-esc="company.name"/>
-                                    <div style="font-size:8pt;">
+                                    <div style="border-bottom:1px solid #000; min-height:18px;">
+                                        <strong t-esc="company.name"/>
+                                    </div>
+                                    <div style="font-size:8pt; text-align:center;">
                                         Найменування підприємства (установи, організації)
                                     </div>
                                 </td>
-                                <td style="width:40%; vertical-align:top;">
+
+                                <td style="width:40%; vertical-align:top; padding-left:14px;">
                                     <strong>Типова форма № П-4</strong><br/>
                                     ЗАТВЕРДЖЕНО<br/>
                                     Наказ Держкомстату України<br/>
@@ -493,59 +657,70 @@
                             </tr>
                         </table>
 
-                        <table style="width:44%; margin-left:auto; margin-top:12px; border-collapse:collapse;">
+                        <table style="width:44%; margin-left:auto; margin-top:10px; border-collapse:collapse;">
                             <tr>
-                                <td>Код ЄДРПОУ</td>
-                                <td style="border:1px solid #000; padding:4px; text-align:center;">
+                                <td style="border:1px solid #000; padding:3px;">
+                                    Код ЄДРПОУ
+                                </td>
+                                <td style="border:1px solid #000; padding:3px; text-align:center;">
                                     <span t-esc="company.company_registry or ''"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Дата складання</td>
-                                <td style="border:1px solid #000; padding:4px; text-align:center;">
+                                <td style="border:1px solid #000; padding:3px;">
+                                    Дата складання
+                                </td>
+                                <td style="border:1px solid #000; padding:3px; text-align:center;">
                                     <span t-esc="order.order_date.strftime('%d.%m.%Y') if order.order_date else ''"/>
                                 </td>
                             </tr>
                         </table>
 
-                        <div style="text-align:center; margin-top:25px;">
-                            <div style="font-size:15pt; font-weight:bold;">
+                        <div style="text-align:center; margin-top:22px;">
+                            <div style="font-size:14pt; font-weight:bold;">
                                 НАКАЗ № <span t-esc="order.number"/>
                             </div>
-                            <div>(РОЗПОРЯДЖЕННЯ)</div>
-                            <div style="font-size:12pt; font-weight:bold; margin-top:6px;">
+                            <div style="font-weight:bold;">
+                                (РОЗПОРЯДЖЕННЯ)
+                            </div>
+                            <div style="font-size:11pt; font-weight:bold; margin-top:5px;">
                                 про припинення трудового договору (контракту)
                             </div>
                         </div>
 
-                        <div style="margin-top:22px; font-size:12pt;">
+                        <div style="margin-top:18px; font-size:11pt;">
                             Звільнити
                             <strong t-esc="line.effective_date.strftime('%d.%m.%Y') if line.effective_date else ''"/>
                         </div>
 
-                        <table style="width:100%; margin-top:12px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:10px; border-collapse:collapse;">
                             <tr>
                                 <td style="width:76%; border-bottom:1px solid #000;">
                                     <strong t-esc="line.employee_id.name or line.employee_name or ''"/>
                                 </td>
                                 <td style="width:24%; padding-left:12px;">
-                                    Табельний номер
-                                    <div style="border:1px solid #000; padding:4px; text-align:center;">
+                                    <div style="text-align:center;">
+                                        Табельний номер
+                                    </div>
+                                    <div style="border:1px solid #000; padding:3px; text-align:center;">
                                         <strong t-esc="line.employee_id.identification_id or line.employee_identification_id or ''"/>
                                     </div>
                                 </td>
                             </tr>
                         </table>
+
                         <div style="font-size:8pt; width:76%; text-align:center;">
                             (прізвище, ім’я, по батькові)
                         </div>
 
-                        <div style="margin-top:11px; border-bottom:1px solid #000; min-height:20px;">
+                        <div style="margin-top:9px; border-bottom:1px solid #000; min-height:19px;">
                             <span t-esc="line.employee_id.department_id.name or line.department_id.name or ''"/>
                         </div>
-                        <div style="font-size:8pt; text-align:center;">назва структурного підрозділу</div>
+                        <div style="font-size:8pt; text-align:center;">
+                            назва структурного підрозділу
+                        </div>
 
-                        <div style="margin-top:9px; border-bottom:1px solid #000; min-height:20px;">
+                        <div style="margin-top:7px; border-bottom:1px solid #000; min-height:19px;">
                             <span t-esc="line.employee_id.job_id.name or line.job_id.name or ''"/>
                             <t t-if="line.professional_category_id">
                                 , <span t-esc="line.professional_category_id.name"/>
@@ -555,29 +730,56 @@
                             назва професії (посади), розряд, клас (категорія) кваліфікації
                         </div>
 
-                        <div style="margin-top:12px; border-bottom:1px solid #000; min-height:20px;">
+                        <div style="margin-top:9px; border-bottom:1px solid #000; min-height:19px;">
                             <span t-esc="(line.legal_reason or (line.departure_reason_id.name if line.departure_reason_id else '')) + ((', ' + line.legal_article) if line.legal_article else '')"/>
                         </div>
-                        <div style="font-size:8pt; text-align:center;">причина звільнення</div>
+                        <div style="font-size:8pt; text-align:center;">
+                            причина звільнення
+                        </div>
 
-                        <div style="margin-top:12px; border-bottom:1px solid #000; min-height:34px;">
+                        <div style="margin-top:9px; border-bottom:1px solid #000; min-height:28px;">
                             <span t-esc="line.termination_basis or ''"/>
                             <t t-if="line.basis_document_number">
                                 № <span t-esc="line.basis_document_number"/>
                             </t>
                             <t t-if="line.basis_document_date">
-                                від <span t-esc="line.basis_document_date.strftime('%d.%m.%Y')"/>
+                                від
+                                <span t-esc="line.basis_document_date.strftime('%d.%m.%Y')"/>
                             </t>
                             <t t-if="order.basis">
                                 <span t-esc="order.basis"/>
                             </t>
                         </div>
-                        <div style="font-size:8pt; text-align:center;">підстави звільнення</div>
+                        <div style="font-size:8pt; text-align:center;">
+                            підстави звільнення
+                        </div>
 
-                        <div style="margin-top:15px;">
-                            Виплатити компенсацію за невикористані
-                            <strong t-esc="('%g' % line.unused_leave_days) if line.unused_leave_days else '____'"/>
+                        <div style="margin-top:19px;">
+                            <span class="l10n-ua-checkbox"
+                                  style="display:inline-block; width:10px; height:10px; line-height:9px; border:1px solid #000; text-align:center; vertical-align:middle; font-family:'Times New Roman'; font-size:8pt; font-weight:bold;"
+                                  t-esc="'X' if line.severance_amount else ''"/>
+                            Вихідна допомога
+                            <span style="display:inline-block; width:105px; border-bottom:1px solid #000; text-align:center;">
+                                <t t-if="line.severance_amount">
+                                    <span t-esc="severance_text.split('.')[0]"/>
+                                </t>
+                            </span>
+                            грн.
+                            <span style="display:inline-block; width:50px; border-bottom:1px solid #000; text-align:center;">
+                                <t t-if="line.severance_amount">
+                                    <span t-esc="severance_text.split('.')[1]"/>
+                                </t>
+                            </span>
+                            коп.
+                        </div>
+
+                        <div t-if="line.unused_leave_days"
+                             style="margin-top:18px; padding-top:7px; border-top:1px solid #999; font-size:9pt;">
+                            <strong>Додатково:</strong>
+                            виплатити компенсацію за невикористані
+                            <strong t-esc="'%g' % line.unused_leave_days"/>
                             календарних днів щорічної відпустки
+
                             <t t-if="line.work_period_from or line.work_period_to">
                                 за період роботи
                                 <strong t-esc="line.work_period_from.strftime('%d.%m.%Y') if line.work_period_from else '__________'"/>
@@ -586,22 +788,19 @@
                             </t>
                         </div>
 
-                        <div style="margin-top:24px;">
-                            Вихідна допомога
-                            <span style="display:inline-block; min-width:130px; border-bottom:1px solid #000; text-align:center;">
-                                <t t-if="line.severance_amount">
-                                    <span t-esc="'%.2f' % line.severance_amount"/>
-                                </t>
-                            </span>
-                            грн.
-                        </div>
-
-                        <table style="width:100%; margin-top:50px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:43px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:34%;" t-esc="signer_position"/>
+                                <td style="width:34%;">
+                                    Керівник підприємства<br/>
+                                    <span style="font-size:8pt;">
+                                        (установи, організації)
+                                    </span>
+                                </td>
                                 <td style="width:28%; text-align:center;">
                                     ______________<br/>
-                                    <span style="font-size:8pt;">підпис</span>
+                                    <span style="font-size:8pt;">
+                                        підпис
+                                    </span>
                                 </td>
                                 <td style="width:38%; text-align:center;">
                                     <span t-esc="signer_name or '____________________________'"/>
@@ -609,12 +808,17 @@
                             </tr>
                         </table>
 
-                        <table style="width:100%; margin-top:35px; border-collapse:collapse;">
+                        <table style="width:100%; margin-top:30px; border-collapse:collapse;">
                             <tr>
-                                <td style="width:34%;">З наказом (розпорядженням)<br/>ознайомлений</td>
+                                <td style="width:34%;">
+                                    З наказом (розпорядженням)<br/>
+                                    ознайомлений
+                                </td>
                                 <td style="width:28%; text-align:center;">
                                     ______________<br/>
-                                    <span style="font-size:8pt;">підпис працівника</span>
+                                    <span style="font-size:8pt;">
+                                        підпис працівника
+                                    </span>
                                 </td>
                                 <td style="width:38%; text-align:center;">
                                     «____» ____________ 20__ р.
@@ -626,4 +830,5 @@
             </t>
         </t>
     </template>
+
 </odoo>
