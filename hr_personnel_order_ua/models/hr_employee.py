@@ -15,6 +15,14 @@ class HrEmployee(models.Model):
         compute="_compute_personnel_counts",
     )
 
+    l10n_ua_employment_period_ids = fields.One2many(
+        "hr.personnel.employment.period",
+        "employee_id",
+        string="Фактичні трудові періоди",
+        readonly=True,
+        groups="hr.group_hr_user",
+    )
+
     l10n_ua_first_employment_date = fields.Date(
         string="Перше прийняття на підприємство",
         compute="_compute_l10n_ua_first_employment_date",
@@ -116,21 +124,44 @@ class HrEmployee(models.Model):
     )
 
     @api.depends(
+        "l10n_ua_employment_period_ids.date_start",
+        "service_hire_date",
         "contract_ids.date_start",
         "contract_ids.state",
     )
     def _compute_l10n_ua_first_employment_date(self):
         for employee in self:
-            contracts = employee.contract_ids.filtered(
-                lambda contract: (
+            dates = [
+                period.date_start
+                for period in (
+                    employee.l10n_ua_employment_period_ids
+                )
+                if period.date_start
+            ]
+
+            # Native contracts remain part of the modern
+            # operational HR workflow. They are considered
+            # here only as independently known start dates.
+            dates.extend(
+                contract.date_start
+                for contract in employee.contract_ids
+                if (
                     contract.state != "cancel"
                     and contract.date_start
                 )
             )
 
+            # Production may currently contain an employee
+            # card with a known current rehire date but no
+            # native hr.contract yet.
+            if employee.service_hire_date:
+                dates.append(
+                    employee.service_hire_date
+                )
+
             employee.l10n_ua_first_employment_date = (
-                min(contracts.mapped("date_start"))
-                if contracts
+                min(dates)
+                if dates
                 else False
             )
 

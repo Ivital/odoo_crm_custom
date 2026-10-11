@@ -144,62 +144,6 @@ class HrJobHistoricalCanonical(models.Model):
         )
 
 
-class HrContractHistoricalReconstruction(models.Model):
-    _inherit = "hr.contract"
-
-    l10n_ua_historical_reconstruction = fields.Boolean(
-        string="Історично відновлений трудовий період",
-        readonly=True,
-        copy=False,
-        index=True,
-    )
-
-    l10n_ua_end_date_inferred = fields.Boolean(
-        string="Дата завершення періоду попередня",
-        readonly=True,
-        copy=False,
-        help=(
-            "Дата завершення технічно виведена з початку "
-            "наступного відомого трудового періоду. "
-            "Це не підтверджена дата звільнення."
-        ),
-    )
-
-    l10n_ua_end_date_unresolved = fields.Boolean(
-        string="Дата завершення періоду не встановлена",
-        readonly=True,
-        copy=False,
-        help=(
-            "Історичний трудовий період відомий, але за "
-            "наявними документами дата його завершення "
-            "ще не встановлена."
-        ),
-    )
-
-    l10n_ua_historical_calendar_unknown = fields.Boolean(
-        string="Історичний графік роботи не встановлено",
-        readonly=True,
-        copy=False,
-        help=(
-            "Первинне джерело не містить підтвердженого "
-            "графіка роботи. Значення resource_calendar_id "
-            "у такому контракті є лише технічно необхідним "
-            "для Odoo і не є історичним фактом."
-        ),
-    )
-
-    l10n_ua_historical_wage_unknown = fields.Boolean(
-        string="Історичний оклад не встановлено",
-        readonly=True,
-        copy=False,
-        help=(
-            "Первинне джерело не містить підтвердженого "
-            "окладу. Технічне значення wage у такому "
-            "контракті не слід трактувати як історичний факт."
-        ),
-    )
-
-
 class HrPersonnelOrderHistorical(models.Model):
     _inherit = "hr.personnel.order"
 
@@ -225,6 +169,17 @@ class HrPersonnelOrderHistorical(models.Model):
     source_register_name = fields.Char(
         string="Назва журналу-джерела",
         copy=False,
+    )
+
+    source_year = fields.Integer(
+        string="Рік журналу-джерела",
+        copy=False,
+        index=True,
+        help=(
+            "Рік первинного реєстраційного журналу. "
+            "Це реквізит джерела, а не заміна дати "
+            "чи року самого кадрового наказу."
+        ),
     )
 
     source_row = fields.Integer(
@@ -262,6 +217,105 @@ class HrPersonnelOrderHistorical(models.Model):
         copy=False,
     )
 
+    def init(self):
+        super().init()
+
+        # Historical source rows may legitimately reuse the
+        # same legal order number. Modern/current personnel
+        # orders must retain the original number/year
+        # uniqueness contract.
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                hr_personnel_order_current_number_company_year_uidx
+            ON hr_personnel_order (
+                number,
+                company_id,
+                order_year
+            )
+            WHERE entry_mode = 'current'
+            """
+        )
+
+        # Archival idempotency is tied to the physical source
+        # location, independently from the legal order number
+        # and independently from the free-form source_key.
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                hr_personnel_order_historical_source_row_uidx
+            ON hr_personnel_order (
+                company_id,
+                source_register_key,
+                source_year,
+                source_row
+            )
+            WHERE entry_mode = 'historical'
+              AND source_register_key IS NOT NULL
+              AND source_year IS NOT NULL
+              AND source_row > 0
+            """
+        )
+
+    @api.constrains(
+        "number",
+        "company_id",
+        "order_year",
+        "entry_mode",
+    )
+    def _check_current_order_number_unique(self):
+        for order in self:
+            if (
+                order.entry_mode != "current"
+                or not order.number
+                or not order.company_id
+                or not order.order_year
+            ):
+                continue
+
+            duplicate = self.search_count(
+                [
+                    (
+                        "id",
+                        "!=",
+                        order.id,
+                    ),
+                    (
+                        "entry_mode",
+                        "=",
+                        "current",
+                    ),
+                    (
+                        "number",
+                        "=",
+                        order.number,
+                    ),
+                    (
+                        "company_id",
+                        "=",
+                        order.company_id.id,
+                    ),
+                    (
+                        "order_year",
+                        "=",
+                        order.order_year,
+                    ),
+                ]
+            )
+
+            if duplicate:
+                raise ValidationError(
+                    _(
+                        "Номер кадрового наказу %(number)s "
+                        "вже використано для поточного "
+                        "кадрового процесу %(year)s року."
+                    )
+                    % {
+                        "number": order.number,
+                        "year": order.order_year,
+                    }
+                )
+
     def write(self, vals):
         if (
             "entry_mode" in vals
@@ -279,6 +333,7 @@ class HrPersonnelOrderHistorical(models.Model):
         source_fields = {
             "source_register_key",
             "source_register_name",
+            "source_year",
             "source_row",
             "source_key",
             "source_status",
@@ -369,6 +424,11 @@ class HrPersonnelOrderHistorical(models.Model):
             ).strip():
                 missing.append(
                     "source_register_name"
+                )
+
+            if order.source_year <= 0:
+                missing.append(
+                    "source_year"
                 )
 
             if order.source_row <= 0:
@@ -481,15 +541,6 @@ class HrPersonnelOrderHistorical(models.Model):
                     )
 
                 if resolution == "new":
-                    if line.action_type != "hire":
-                        raise ValidationError(
-                            _(
-                                "Нову історичну картку "
-                                "можна створити лише "
-                                "подією прийняття."
-                            )
-                        )
-
                     if line.employee_id:
                         raise ValidationError(
                             _(
@@ -497,6 +548,24 @@ class HrPersonnelOrderHistorical(models.Model):
                                 "історична картка» "
                                 "employee_id має бути "
                                 "порожнім."
+                            )
+                        )
+
+                    if not (
+                        (
+                            line.employee_name
+                            or ""
+                        ).strip()
+                        or (
+                            line.source_person_name
+                            or ""
+                        ).strip()
+                    ):
+                        raise ValidationError(
+                            _(
+                                "Для нової історичної "
+                                "особи вкажіть ПІБ "
+                                "з первинного джерела."
                             )
                         )
 
@@ -750,10 +819,10 @@ class HrPersonnelOrderLineHistorical(models.Model):
 
 
     # ========================================================
-    # Temporal contract lookup
+    # Factual employment-period lookup
     # ========================================================
 
-    def _historical_contract_at_date(
+    def _historical_period_at_date(
         self,
         employee,
         target_date=False,
@@ -761,140 +830,623 @@ class HrPersonnelOrderLineHistorical(models.Model):
         self.ensure_one()
 
         if not employee:
-            return self.env["hr.contract"]
+            return self.env[
+                "hr.personnel.employment.period"
+            ]
 
         target_date = (
             target_date
             or self._event_effective_date()
         )
 
-        return self.env["hr.contract"].sudo().search(
+        Period = self.env[
+            "hr.personnel.employment.period"
+        ].sudo()
+
+        # Prefer periods with an actually known start date.
+        period = Period.search(
             [
-                ("employee_id", "=", employee.id),
-                ("company_id", "=", self.company_id.id),
-                "|",
-                ("state", "in", ["open", "close"]),
-                "&",
-                ("state", "=", "draft"),
                 (
-                    "l10n_ua_historical_reconstruction",
+                    "employee_id",
                     "=",
-                    True,
+                    employee.id,
                 ),
-                ("date_start", "<=", target_date),
+                (
+                    "company_id",
+                    "=",
+                    self.company_id.id,
+                ),
+                (
+                    "date_start",
+                    "!=",
+                    False,
+                ),
+                (
+                    "date_start",
+                    "<=",
+                    target_date,
+                ),
                 "|",
-                ("date_end", "=", False),
-                ("date_end", ">=", target_date),
+                (
+                    "date_end",
+                    "=",
+                    False,
+                ),
+                (
+                    "date_end",
+                    ">=",
+                    target_date,
+                ),
             ],
             order="date_start desc, id desc",
             limit=1,
         )
 
-    def _historical_next_contract(
-        self,
-        employee,
-        after_date=False,
-    ):
-        self.ensure_one()
+        if period:
+            return period
 
-        if not employee:
-            return self.env["hr.contract"]
-
-        after_date = (
-            after_date
-            or self.effective_date
-        )
-
-        return self.env["hr.contract"].sudo().search(
+        # A person can first appear in the available archive
+        # as a transfer, leave or dismissal. Such a period has
+        # an unknown real start but a known first observation.
+        return Period.search(
             [
-                ("employee_id", "=", employee.id),
-                ("company_id", "=", self.company_id.id),
-                "|",
-                ("state", "in", ["open", "close"]),
-                "&",
-                ("state", "=", "draft"),
                 (
-                    "l10n_ua_historical_reconstruction",
+                    "employee_id",
                     "=",
-                    True,
+                    employee.id,
                 ),
-                ("date_start", ">", after_date),
+                (
+                    "company_id",
+                    "=",
+                    self.company_id.id,
+                ),
+                (
+                    "date_start",
+                    "=",
+                    False,
+                ),
+                (
+                    "first_observed_date",
+                    "<=",
+                    target_date,
+                ),
+                "|",
+                (
+                    "date_end",
+                    "=",
+                    False,
+                ),
+                (
+                    "date_end",
+                    ">=",
+                    target_date,
+                ),
             ],
-            order="date_start asc, id asc",
+            order=(
+                "first_observed_date desc, "
+                "id desc"
+            ),
             limit=1,
         )
 
-    def _current_contract(self, employee):
+    def _historical_resolve_employee(self):
         self.ensure_one()
 
-        if self.entry_mode == "historical":
-            return self._historical_contract_at_date(
-                employee
+        if self.employee_id:
+            return self.employee_id.sudo()
+
+        if self.identity_resolution != "new":
+            raise ValidationError(
+                _(
+                    "Історичну особу не "
+                    "ідентифіковано однозначно."
+                )
             )
 
-        return super()._current_contract(employee)
+        name = (
+            (
+                self.employee_name
+                or ""
+            ).strip()
+            or (
+                self.source_person_name
+                or ""
+            ).strip()
+        )
 
-    def _historical_protected_current_baseline(
+        if not name:
+            raise ValidationError(
+                _(
+                    "Для нової історичної особи "
+                    "не вказано ПІБ."
+                )
+            )
+
+        return (
+            self.env["hr.employee"]
+            .sudo()
+            .with_context(active_test=False)
+            .create(
+                {
+                    "name": name,
+                    "company_id":
+                        self.company_id.id,
+                    # Historical discovery must never make
+                    # the person operationally employed now.
+                    "active": False,
+                }
+            )
+        )
+
+    def _historical_create_partial_period(
+        self,
+        employee,
+        target_date=False,
+    ):
+        self.ensure_one()
+
+        target_date = (
+            target_date
+            or self._event_effective_date()
+        )
+
+        period = self._historical_period_at_date(
+            employee,
+            target_date,
+        )
+
+        if period:
+            return period
+
+        return (
+            self.env[
+                "hr.personnel.employment.period"
+            ]
+            .sudo()
+            .with_context(
+                **{ENGINE_CONTEXT_KEY: True}
+            )
+            .create(
+                {
+                    "employee_id":
+                        employee.id,
+                    "company_id":
+                        self.company_id.id,
+                    # Unknown start remains genuinely NULL.
+                    "date_start":
+                        False,
+                    "date_end":
+                        False,
+                    "first_observed_date":
+                        target_date,
+                    "personnel_number":
+                        (
+                            self.employee_identification_id
+                            or False
+                        ),
+                    "origin_order_line_id":
+                        self.id,
+                    "start_order_line_id":
+                        False,
+                    "end_order_line_id":
+                        False,
+                }
+            )
+        )
+
+    def _historical_unknown_start_candidates(
         self,
         employee,
     ):
         """
-        Production may already contain an active employee card
-        with current personnel number / position but without
-        hr.contract. Such a card is the protected current state,
-        not an empty historical employee.
+        Periods first discovered from a later fact
+        (transfer/leave/termination) may have date_start=NULL.
+        A subsequently imported earlier hire can refine exactly
+        one such period instead of creating an overlap.
         """
         self.ensure_one()
 
         if not employee:
-            return False
+            return self.env[
+                "hr.personnel.employment.period"
+            ]
 
-        return bool(
-            employee.active
-            and not employee.contract_id
-            and (
-                employee.identification_id
-                or employee.service_hire_date
-                or employee.department_id
-                or employee.job_id
+        return (
+            self.env[
+                "hr.personnel.employment.period"
+            ]
+            .sudo()
+            .search(
+                [
+                    (
+                        "employee_id",
+                        "=",
+                        employee.id,
+                    ),
+                    (
+                        "company_id",
+                        "=",
+                        self.company_id.id,
+                    ),
+                    (
+                        "date_start",
+                        "=",
+                        False,
+                    ),
+                    (
+                        "first_observed_date",
+                        ">",
+                        self.effective_date,
+                    ),
+                    "|",
+                    (
+                        "date_end",
+                        "=",
+                        False,
+                    ),
+                    (
+                        "date_end",
+                        ">=",
+                        self.effective_date,
+                    ),
+                ],
+                order=(
+                    "first_observed_date asc, "
+                    "id asc"
+                ),
+                limit=2,
             )
         )
 
-    def _historical_matches_current_baseline(
+    def _historical_events_as_of(
         self,
-        employee,
+        period,
     ):
         """
-        When we eventually reach the documented current rehire,
-        materialize that period as the employee's real current
-        contract instead of keeping the imported baseline
-        permanently contract-less.
+        Return all immutable factual events that were effective
+        not later than this line's historical effective date.
+
+        State is reconstructed by replaying facts. We therefore
+        do not depend on whichever event happened to be imported
+        last into PostgreSQL.
         """
         self.ensure_one()
 
-        if not self._historical_protected_current_baseline(
-            employee
-        ):
-            return False
+        if not period:
+            return self.env[
+                "hr.personnel.event"
+            ]
 
-        if not employee.service_hire_date:
-            return False
+        events = (
+            self.env["hr.personnel.event"]
+            .sudo()
+            .search(
+                [
+                    (
+                        "employment_period_id",
+                        "=",
+                        period.id,
+                    ),
+                    (
+                        "status",
+                        "=",
+                        "applied",
+                    ),
+                    (
+                        "effective_date",
+                        "<=",
+                        self._event_effective_date(),
+                    ),
+                ]
+            )
+        )
+
+        # Registration source row provides deterministic
+        # ordering for same-day historical facts. Legacy/manual
+        # rows fall back to their database identifiers.
+        return events.sorted(
+            key=lambda event: (
+                event.effective_date,
+                (
+                    event.order_id.source_row
+                    or event.order_id.id
+                ),
+                (
+                    event.order_line_id.sequence
+                    or 0
+                ),
+                event.id,
+            )
+        )
+
+    def _historical_empty_state(self):
+        return {
+            "department_id": False,
+            "job_id": False,
+            "resource_calendar_id": False,
+            "wage": 0.0,
+            "calendar_unknown": True,
+            "wage_unknown": True,
+        }
+
+    def _historical_apply_line_to_state(
+        self,
+        state,
+        line,
+    ):
+        """
+        Apply one immutable source fact to an as-of state.
+
+        This function is shared by ordinary historical lookup
+        and snapshot reconciliation, so both paths use exactly
+        the same temporal semantics.
+        """
+        result = dict(state)
+
+        action_type = line.action_type
+
+        if action_type == "hire":
+            result["department_id"] = (
+                line.department_id.id
+                or False
+            )
+
+            result["job_id"] = (
+                line.job_id.id
+                or False
+            )
+
+            result[
+                "resource_calendar_id"
+            ] = (
+                line.resource_calendar_id.id
+                or False
+            )
+
+            result["calendar_unknown"] = (
+                not bool(
+                    line.resource_calendar_id
+                )
+            )
+
+            result["wage"] = (
+                line.wage
+                if line.wage > 0
+                else 0.0
+            )
+
+            result["wage_unknown"] = (
+                line.wage <= 0
+            )
+
+            return result
 
         if (
-            employee.service_hire_date
-            != self.effective_date
+            action_type
+            in {
+                "transfer",
+                "department_change",
+                "employment_condition_change",
+            }
+            and line.department_id
         ):
-            return False
+            result["department_id"] = (
+                line.department_id.id
+            )
 
         if (
-            self.employee_identification_id
-            and employee.identification_id
-            and self.employee_identification_id
-            != employee.identification_id
+            action_type
+            in {
+                "transfer",
+                "position_change",
+                "employment_condition_change",
+            }
+            and line.job_id
         ):
-            return False
+            result["job_id"] = (
+                line.job_id.id
+            )
 
-        return True
+        if (
+            action_type
+            in {
+                "transfer",
+                "schedule_change",
+                "employment_condition_change",
+            }
+            and line.resource_calendar_id
+        ):
+            result[
+                "resource_calendar_id"
+            ] = (
+                line.resource_calendar_id.id
+            )
+
+            result[
+                "calendar_unknown"
+            ] = False
+
+        if (
+            action_type == "salary_change"
+            or (
+                action_type
+                in {
+                    "transfer",
+                    "employment_condition_change",
+                }
+                and line.wage > 0
+            )
+        ):
+            result["wage"] = (
+                line.wage
+            )
+
+            result[
+                "wage_unknown"
+            ] = False
+
+        return result
+
+    def _historical_state(
+        self,
+        period,
+    ):
+        """
+        Reconstruct state as-of the current historical line by
+        replaying immutable source facts in effective order.
+        """
+        self.ensure_one()
+
+        state = (
+            self._historical_empty_state()
+        )
+
+        for event in self._historical_events_as_of(
+            period
+        ):
+            state = (
+                self._historical_apply_line_to_state(
+                    state,
+                    event.order_line_id,
+                )
+            )
+
+        return state
+
+    def _historical_all_period_events(
+        self,
+        period,
+    ):
+        self.ensure_one()
+
+        events = (
+            self.env["hr.personnel.event"]
+            .sudo()
+            .search(
+                [
+                    (
+                        "employment_period_id",
+                        "=",
+                        period.id,
+                    ),
+                    (
+                        "status",
+                        "=",
+                        "applied",
+                    ),
+                ]
+            )
+        )
+
+        return events.sorted(
+            key=lambda event: (
+                event.effective_date,
+                (
+                    event.order_id.source_year
+                    or event.effective_date.year
+                ),
+                (
+                    event.order_id.source_register_key
+                    or ""
+                ),
+                (
+                    event.order_id.source_row
+                    or event.order_id.id
+                ),
+                (
+                    event.order_line_id.sequence
+                    or 0
+                ),
+                event.id,
+            )
+        )
+
+    def _historical_reconcile_event_snapshots(
+        self,
+        period,
+    ):
+        """
+        previous_*/new_* fields are derived temporal snapshots,
+        not independent source facts.
+
+        When an older order is imported after a newer one,
+        recompute those snapshots for the whole factual period.
+        Source data itself is never changed.
+        """
+        self.ensure_one()
+
+        state = (
+            self._historical_empty_state()
+        )
+
+        for event in (
+            self._historical_all_period_events(
+                period
+            )
+        ):
+            previous = dict(state)
+
+            state = (
+                self._historical_apply_line_to_state(
+                    state,
+                    event.order_line_id,
+                )
+            )
+
+            vals = {
+                "previous_department_id":
+                    previous["department_id"],
+                "previous_job_id":
+                    previous["job_id"],
+                "previous_resource_calendar_id":
+                    (
+                        False
+                        if previous[
+                            "calendar_unknown"
+                        ]
+                        else previous[
+                            "resource_calendar_id"
+                        ]
+                    ),
+                "previous_wage":
+                    (
+                        0.0
+                        if previous[
+                            "wage_unknown"
+                        ]
+                        else previous["wage"]
+                    ),
+                "new_department_id":
+                    state["department_id"],
+                "new_job_id":
+                    state["job_id"],
+                "new_resource_calendar_id":
+                    (
+                        False
+                        if state[
+                            "calendar_unknown"
+                        ]
+                        else state[
+                            "resource_calendar_id"
+                        ]
+                    ),
+                "new_wage":
+                    (
+                        0.0
+                        if state[
+                            "wage_unknown"
+                        ]
+                        else state["wage"]
+                    ),
+                "l10n_ua_historical_calendar_unknown":
+                    state["calendar_unknown"],
+                "l10n_ua_historical_wage_unknown":
+                    state["wage_unknown"],
+            }
+
+            event.with_context(
+                personnel_event_maintenance=True
+            ).write(vals)
 
     # ========================================================
     # Historical line snapshots
@@ -906,49 +1458,43 @@ class HrPersonnelOrderLineHistorical(models.Model):
     ):
         self.ensure_one()
 
-        contract = (
-            self._historical_contract_at_date(
+        period = (
+            self._historical_period_at_date(
                 employee
             )
         )
 
-        if not contract:
-            return {
-                "employee_name": employee.name,
-                "employee_identification_id": False,
-                "previous_department_id": False,
-                "previous_job_id": False,
-                "previous_resource_calendar_id": False,
-                "previous_wage": 0.0,
-            }
+        state = self._historical_state(
+            period
+        )
 
         return {
-            "employee_name": employee.name,
-            "employee_identification_id": (
-                contract.l10n_ua_personnel_number
-                or False
-            ),
-            "previous_department_id": (
-                contract.department_id.id
-                or False
-            ),
-            "previous_job_id": (
-                contract.job_id.id
-                or False
-            ),
-            "previous_resource_calendar_id": (
-                False
-                if contract.l10n_ua_historical_calendar_unknown
-                else (
-                    contract.resource_calendar_id.id
-                    or False
-                )
-            ),
-            "previous_wage": (
-                0.0
-                if contract.l10n_ua_historical_wage_unknown
-                else contract.wage
-            ),
+            "employee_name":
+                employee.name,
+            "employee_identification_id":
+                (
+                    period.personnel_number
+                    if period
+                    else False
+                ),
+            "previous_department_id":
+                state["department_id"],
+            "previous_job_id":
+                state["job_id"],
+            "previous_resource_calendar_id":
+                (
+                    False
+                    if state["calendar_unknown"]
+                    else state[
+                        "resource_calendar_id"
+                    ]
+                ),
+            "previous_wage":
+                (
+                    0.0
+                    if state["wage_unknown"]
+                    else state["wage"]
+                ),
         }
 
     @api.model_create_multi
@@ -1044,6 +1590,7 @@ class HrPersonnelOrderLineHistorical(models.Model):
                         "employee_identification_id"
                     ]
                 )
+
             elif line.action_type != "hire":
                 line.employee_identification_id = False
 
@@ -1055,31 +1602,59 @@ class HrPersonnelOrderLineHistorical(models.Model):
         "action_type",
         "employee_id",
         "employee_name",
+        "source_person_name",
+        "identity_resolution",
+        "entry_mode",
     )
     def _check_employee_reference(self):
-        for line in self:
-            if line.action_type == "hire":
-                if (
-                    not line.employee_id
-                    and not (
-                        line.employee_name or ""
-                    ).strip()
-                ):
-                    raise ValidationError(
-                        _(
-                            "Для наказу про прийняття "
-                            "вкажіть існуючого "
-                            "працівника або ПІБ."
-                        )
-                    )
+        current = self.filtered(
+            lambda line:
+                line.entry_mode != "historical"
+        )
 
-            elif not line.employee_id:
-                raise ValidationError(
-                    _(
-                        "Для цієї кадрової дії "
-                        "необхідно вибрати працівника."
-                    )
+        historical = self - current
+
+        if current:
+            super(
+                HrPersonnelOrderLineHistorical,
+                current,
+            )._check_employee_reference()
+
+        for line in historical:
+            if line.employee_id:
+                continue
+
+            name = (
+                (
+                    line.employee_name
+                    or ""
+                ).strip()
+                or (
+                    line.source_person_name
+                    or ""
+                ).strip()
+            )
+
+            if (
+                line.action_type == "hire"
+                and name
+            ):
+                continue
+
+            if (
+                line.identity_resolution == "new"
+                and name
+            ):
+                continue
+
+            raise ValidationError(
+                _(
+                    "Для історичної кадрової дії "
+                    "виберіть працівника або "
+                    "позначте особу як нову "
+                    "історичну картку."
                 )
+            )
 
     # ========================================================
     # Historical validation
@@ -1105,45 +1680,58 @@ class HrPersonnelOrderLineHistorical(models.Model):
                     _("Вкажіть дату кадрової дії.")
                 )
 
-            action_type = line.action_type
+            name = (
+                (
+                    line.employee_name
+                    or ""
+                ).strip()
+                or (
+                    line.source_person_name
+                    or ""
+                ).strip()
+            )
 
-            if action_type == "hire":
-                if (
-                    not line.employee_id
-                    and not (
-                        line.employee_name or ""
-                    ).strip()
+            if not line.employee_id and not (
+                line.identity_resolution == "new"
+                and name
+            ):
+                if not (
+                    line.action_type == "hire"
+                    and name
                 ):
                     raise ValidationError(
                         _(
-                            "Для історичного "
-                            "прийняття вкажіть "
-                            "працівника або ПІБ."
+                            "Історичну особу "
+                            "не ідентифіковано."
                         )
                     )
 
-            elif action_type == "leave":
+            action_type = line.action_type
+
+            if action_type == "leave":
                 if (
-                    not line.employee_id
-                    or not line.leave_type_id
+                    not line.leave_type_id
                     or not line.leave_date_from
-                    or not line.leave_date_to
                 ):
                     raise ValidationError(
                         _(
                             "Для історичної відпустки "
-                            "вкажіть працівника, вид "
-                            "та період відпустки."
+                            "вкажіть вид та дату початку. "
+                            "Дата завершення може "
+                            "залишатися невідомою."
                         )
                     )
 
-            elif action_type == "termination":
-                if not line.employee_id:
+                if (
+                    line.leave_date_to
+                    and line.leave_date_to
+                    < line.leave_date_from
+                ):
                     raise ValidationError(
                         _(
-                            "Для історичного "
-                            "звільнення виберіть "
-                            "працівника."
+                            "Дата завершення відпустки "
+                            "не може передувати "
+                            "даті початку."
                         )
                     )
 
@@ -1219,7 +1807,7 @@ class HrPersonnelOrderLineHistorical(models.Model):
         return True
 
     # ========================================================
-    # Event state at historical date
+    # Historical event state
     # ========================================================
 
     def _event_effective_date(self):
@@ -1251,12 +1839,15 @@ class HrPersonnelOrderLineHistorical(models.Model):
             or self.employee_id
         )
 
-        contract = (
-            self._historical_contract_at_date(
-                target_employee
+        period = (
+            self.employment_period_id
+            or (
+                self._historical_period_at_date(
+                    target_employee
+                )
+                if target_employee
+                else False
             )
-            if target_employee
-            else False
         )
 
         vals[
@@ -1264,8 +1855,8 @@ class HrPersonnelOrderLineHistorical(models.Model):
         ] = (
             self.employee_identification_id
             or (
-                contract.l10n_ua_personnel_number
-                if contract
+                period.personnel_number
+                if period
                 else False
             )
             or False
@@ -1284,43 +1875,36 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 contract=contract,
             )
 
-        contract = (
-            contract
-            or self._historical_contract_at_date(
+        period = (
+            self.employment_period_id
+            or self._historical_period_at_date(
                 employee
             )
         )
 
-        if not contract:
-            return {
-                "previous_department_id": False,
-                "previous_job_id": False,
-                "previous_resource_calendar_id": False,
-                "previous_wage": 0.0,
-            }
+        state = self._historical_state(
+            period
+        )
 
         return {
-            "previous_department_id": (
-                contract.department_id.id
-                or False
-            ),
-            "previous_job_id": (
-                contract.job_id.id
-                or False
-            ),
-            "previous_resource_calendar_id": (
-                False
-                if contract.l10n_ua_historical_calendar_unknown
-                else (
-                    contract.resource_calendar_id.id
-                    or False
-                )
-            ),
-            "previous_wage": (
-                0.0
-                if contract.l10n_ua_historical_wage_unknown
-                else contract.wage
-            ),
+            "previous_department_id":
+                state["department_id"],
+            "previous_job_id":
+                state["job_id"],
+            "previous_resource_calendar_id":
+                (
+                    False
+                    if state["calendar_unknown"]
+                    else state[
+                        "resource_calendar_id"
+                    ]
+                ),
+            "previous_wage":
+                (
+                    0.0
+                    if state["wage_unknown"]
+                    else state["wage"]
+                ),
         }
 
     def _finalize_event(
@@ -1330,6 +1914,7 @@ class HrPersonnelOrderLineHistorical(models.Model):
         contract=False,
         leave=False,
         previous=None,
+        period=False,
     ):
         if self.entry_mode != "historical":
             return super()._finalize_event(
@@ -1340,85 +1925,206 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 previous=previous,
             )
 
-        previous = (
-            previous
-            or self._actual_state(
-                employee,
-                contract=contract,
+        period = (
+            period
+            or self.employment_period_id
+            or self._historical_period_at_date(
+                employee
             )
         )
+
+        state = self._historical_state(
+            period
+        )
+
+        previous = (
+            previous
+            or {
+                "previous_department_id":
+                    state["department_id"],
+                "previous_job_id":
+                    state["job_id"],
+                "previous_resource_calendar_id":
+                    (
+                        False
+                        if state["calendar_unknown"]
+                        else state[
+                            "resource_calendar_id"
+                        ]
+                    ),
+                "previous_wage":
+                    (
+                        0.0
+                        if state["wage_unknown"]
+                        else state["wage"]
+                    ),
+            }
+        )
+
+        new_department_id = state[
+            "department_id"
+        ]
+
+        new_job_id = state[
+            "job_id"
+        ]
+
+        new_resource_calendar_id = state[
+            "resource_calendar_id"
+        ]
+
+        new_wage = state["wage"]
+
+        calendar_unknown = state[
+            "calendar_unknown"
+        ]
+
+        wage_unknown = state[
+            "wage_unknown"
+        ]
+
+        action_type = self.action_type
+
+        if action_type == "hire":
+            new_department_id = (
+                self.department_id.id
+                or False
+            )
+
+            new_job_id = (
+                self.job_id.id
+                or False
+            )
+
+            new_resource_calendar_id = (
+                self.resource_calendar_id.id
+                or False
+            )
+
+            new_wage = (
+                self.wage
+                if self.wage > 0
+                else 0.0
+            )
+
+            calendar_unknown = not bool(
+                self.resource_calendar_id
+            )
+
+            wage_unknown = (
+                self.wage <= 0
+            )
+
+        elif action_type in {
+            "transfer",
+            "position_change",
+            "department_change",
+            "salary_change",
+            "schedule_change",
+            "employment_condition_change",
+        }:
+            if (
+                action_type
+                in {
+                    "transfer",
+                    "department_change",
+                    "employment_condition_change",
+                }
+                and self.department_id
+            ):
+                new_department_id = (
+                    self.department_id.id
+                )
+
+            if (
+                action_type
+                in {
+                    "transfer",
+                    "position_change",
+                    "employment_condition_change",
+                }
+                and self.job_id
+            ):
+                new_job_id = self.job_id.id
+
+            if (
+                action_type
+                in {
+                    "transfer",
+                    "schedule_change",
+                    "employment_condition_change",
+                }
+                and self.resource_calendar_id
+            ):
+                new_resource_calendar_id = (
+                    self.resource_calendar_id.id
+                )
+
+                calendar_unknown = False
+
+            if (
+                action_type == "salary_change"
+                or (
+                    action_type
+                    in {
+                        "transfer",
+                        "employment_condition_change",
+                    }
+                    and self.wage > 0
+                )
+            ):
+                new_wage = self.wage
+                wage_unknown = False
 
         vals = dict(previous)
 
         vals.update(
             {
-                "employee_id": employee.id,
-                "employee_identification_id": (
-                    self.employee_identification_id
-                    or (
-                        contract.l10n_ua_personnel_number
-                        if contract
-                        else False
-                    )
-                    or False
-                ),
-                "status": "applied",
-                "new_department_id": (
-                    contract.department_id.id
-                    if contract
-                    else False
-                ),
-                "new_job_id": (
-                    contract.job_id.id
-                    if contract
-                    else False
-                ),
-                "new_resource_calendar_id": (
-                    False
-                    if (
-                        contract
-                        and contract.l10n_ua_historical_calendar_unknown
-                    )
-                    else (
-                        contract.resource_calendar_id.id
-                        if contract
-                        else False
-                    )
-                ),
-                "new_wage": (
-                    0.0
-                    if (
-                        contract
-                        and contract.l10n_ua_historical_wage_unknown
-                    )
-                    else (
-                        contract.wage
-                        if contract
-                        else self.wage
-                    )
-                ),
-                "l10n_ua_historical_calendar_unknown": (
-                    bool(
-                        contract
-                        and contract.l10n_ua_historical_calendar_unknown
-                    )
-                ),
-                "l10n_ua_historical_wage_unknown": (
-                    bool(
-                        contract
-                        and contract.l10n_ua_historical_wage_unknown
-                    )
-                ),
-                "contract_id": (
-                    contract.id
-                    if contract
-                    else False
-                ),
-                "leave_id": (
-                    leave.id
-                    if leave
-                    else False
-                ),
+                "employee_id":
+                    employee.id,
+                "employee_identification_id":
+                    (
+                        self.employee_identification_id
+                        or (
+                            period.personnel_number
+                            if period
+                            else False
+                        )
+                        or False
+                    ),
+                "employment_period_id":
+                    period.id
+                    if period
+                    else False,
+                "status":
+                    "applied",
+                "new_department_id":
+                    new_department_id,
+                "new_job_id":
+                    new_job_id,
+                "new_resource_calendar_id":
+                    (
+                        False
+                        if calendar_unknown
+                        else new_resource_calendar_id
+                    ),
+                "new_wage":
+                    (
+                        0.0
+                        if wage_unknown
+                        else new_wage
+                    ),
+                "l10n_ua_historical_calendar_unknown":
+                    calendar_unknown,
+                "l10n_ua_historical_wage_unknown":
+                    wage_unknown,
+
+                # Historical reconstruction must never
+                # create operational contract/leave links.
+                "contract_id":
+                    False,
+                "leave_id":
+                    False,
                 "applied_at":
                     fields.Datetime.now(),
                 "applied_by_id":
@@ -1430,11 +2136,17 @@ class HrPersonnelOrderLineHistorical(models.Model):
             personnel_event_maintenance=True
         ).write(vals)
 
+        if period:
+            self._historical_reconcile_event_snapshots(
+                period
+            )
+
     def _mark_applied(
         self,
         employee,
         contract=False,
         leave=False,
+        period=False,
     ):
         if self.entry_mode != "historical":
             return super()._mark_applied(
@@ -1443,11 +2155,19 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 leave=leave,
             )
 
+        period = (
+            period
+            or self.employment_period_id
+            or self._historical_period_at_date(
+                employee
+            )
+        )
+
         personnel_number = (
             self.employee_identification_id
             or (
-                contract.l10n_ua_personnel_number
-                if contract
+                period.personnel_number
+                if period
                 else False
             )
             or False
@@ -1457,22 +2177,30 @@ class HrPersonnelOrderLineHistorical(models.Model):
             **{ENGINE_CONTEXT_KEY: True}
         ).sudo().write(
             {
-                "employee_id": employee.id,
-                "employee_name": employee.name,
+                "employee_id":
+                    employee.id,
+                "employee_name":
+                    employee.name,
                 "employee_identification_id":
                     personnel_number,
-                "contract_id": (
-                    contract.id
-                    if contract
-                    else False
-                ),
-                "leave_id": (
-                    leave.id
-                    if leave
-                    else False
-                ),
-                "application_state": "applied",
-                "application_error": False,
+                "employment_period_id":
+                    (
+                        period.id
+                        if period
+                        else False
+                    ),
+
+                # Never bind historical facts to
+                # operational records.
+                "contract_id":
+                    False,
+                "leave_id":
+                    False,
+
+                "application_state":
+                    "applied",
+                "application_error":
+                    False,
                 "last_application_attempt_at":
                     fields.Datetime.now(),
                 "applied_at":
@@ -1492,52 +2220,16 @@ class HrPersonnelOrderLineHistorical(models.Model):
 
         self.ensure_one()
 
-        Employee = (
-            self.env["hr.employee"]
-            .sudo()
-            .with_context(active_test=False)
-        )
-
-        Contract = self.env["hr.contract"].sudo()
-
         employee = (
-            self.employee_id.sudo()
-            if self.employee_id
-            else False
+            self._historical_resolve_employee()
         )
 
-        employee_existed = bool(employee)
-
-        if not employee:
-            # Historical-only people must not appear as
-            # employees working today merely because we are
-            # currently reconstructing an old year.
-            employee = Employee.create(
-                {
-                    "name":
-                        self.employee_name.strip(),
-                    "company_id":
-                        self.company_id.id,
-                    "active": False,
-                }
-            )
-
-        protected_current = (
-            employee_existed
-            and self._historical_protected_current_baseline(
-                employee
-            )
-        )
-
-        matches_current = (
-            protected_current
-            and self._historical_matches_current_baseline(
-                employee
-            )
-        )
-
+        # A hire cannot silently overlap a period already known
+        # to cover that date. If it does, the source history
+        # must be resolved explicitly instead of fabricating an
+        # employment boundary.
         existing = (
-            self._historical_contract_at_date(
+            self._historical_period_at_date(
                 employee,
                 self.effective_date,
             )
@@ -1546,262 +2238,192 @@ class HrPersonnelOrderLineHistorical(models.Model):
         if existing:
             raise ValidationError(
                 _(
-                    "На дату %(date)s працівник "
-                    "%(employee)s вже має "
-                    "трудовий період %(contract)s."
+                    "На дату %(date)s для працівника "
+                    "%(employee)s вже існує фактичний "
+                    "трудовий період %(period)s. "
+                    "Не можна автоматично створити "
+                    "перекривний період."
                 )
                 % {
-                    "date": self.effective_date,
-                    "employee": employee.name,
-                    "contract":
+                    "date":
+                        self.effective_date,
+                    "employee":
+                        employee.name,
+                    "period":
                         existing.display_name,
                 }
             )
 
-        next_contract = (
-            self._historical_next_contract(
-                employee,
-                self.effective_date,
+        candidates = (
+            self._historical_unknown_start_candidates(
+                employee
             )
         )
 
-        date_end = self.employment_end_date
-
-        # Never infer or manufacture the end of an old
-        # employment period. A later contract is evidence
-        # only that a later period exists, not evidence of
-        # the legal dismissal date of this one.
-        if (
-            next_contract
-            and date_end
-            and date_end >= next_contract.date_start
-        ):
+        if len(candidates) > 1:
             raise ValidationError(
                 _(
-                    "Історичний трудовий період "
-                    "перетинається з наступним "
-                    "контрактом %s."
+                    "Для працівника %(employee)s знайдено "
+                    "кілька трудових періодів з невідомою "
+                    "датою початку після %(date)s. "
+                    "Автоматичне зіставлення неоднозначне."
                 )
-                % next_contract.display_name
-            )
-
-        # The imported modern employee card can itself provide
-        # a known current start date. Again: validate an
-        # explicit historical end, but never infer one.
-        if (
-            protected_current
-            and not matches_current
-            and employee.service_hire_date
-            and employee.service_hire_date
-            > self.effective_date
-            and date_end
-            and date_end
-            >= employee.service_hire_date
-        ):
-            raise ValidationError(
-                _(
-                    "Історичний трудовий період "
-                    "перетинається з поточним "
-                    "періодом працівника, який "
-                    "починається %s."
-                )
-                % employee.service_hire_date
-            )
-
-        if matches_current:
-            today = fields.Date.context_today(self)
-
-            contract_state = (
-                "open"
-                if (
-                    not date_end
-                    or date_end >= today
-                )
-                else "close"
-            )
-
-            end_date_unresolved = False
-
-        elif date_end:
-            contract_state = "close"
-            end_date_unresolved = False
-
-        else:
-            # Unknown end stays NULL. Draft keeps an
-            # unresolved historical period out of Odoo's
-            # current operational contract semantics.
-            contract_state = "draft"
-            end_date_unresolved = True
-
-        personnel_number = (
-            self.employee_identification_id
-            or (
-                employee.identification_id
-                if matches_current
-                else False
-            )
-            or False
-        )
-
-        source_calendar = (
-            self.resource_calendar_id
-        )
-
-        baseline_calendar = (
-            employee.resource_calendar_id
-            if (
-                matches_current
-                and employee.resource_calendar_id
-            )
-            else False
-        )
-
-        technical_calendar = (
-            source_calendar
-            or baseline_calendar
-            or self.company_id.resource_calendar_id
-        )
-
-        if not technical_calendar:
-            raise ValidationError(
-                _(
-                    "Неможливо створити історичний "
-                    "трудовий період: для підприємства "
-                    "не налаштовано технічний графік "
-                    "роботи Odoo."
-                )
-            )
-
-        historical_calendar_unknown = not bool(
-            source_calendar
-            or baseline_calendar
-        )
-
-        historical_wage_unknown = (
-            self.wage <= 0
-        )
-
-        technical_wage = (
-            self.wage
-            if self.wage > 0
-            else 0.0
-        )
-
-        contract_vals = {
-            "name": (
-                f"{self.order_id.number} — "
-                f"{employee.name}"
-            ),
-            "employee_id": employee.id,
-            "company_id": self.company_id.id,
-            "date_start": self.effective_date,
-            "date_end": date_end,
-            "trial_date_end":
-                self.trial_date_end,
-            "wage": technical_wage,
-            "resource_calendar_id":
-                technical_calendar.id,
-            "state": contract_state,
-            "l10n_ua_personnel_order_line_id":
-                self.id,
-            "l10n_ua_hire_order_line_id":
-                self.id,
-            "l10n_ua_personnel_number":
-                personnel_number,
-            "l10n_ua_work_type": (
-                self.work_type or "main"
-            ),
-            "l10n_ua_hire_condition": (
-                self.hire_condition or False
-            ),
-            "l10n_ua_weekly_hours":
-                self.weekly_hours,
-            "l10n_ua_work_conditions": (
-                self.work_conditions or False
-            ),
-            "l10n_ua_allowance_note": (
-                self.allowance_note or False
-            ),
-            "l10n_ua_historical_reconstruction":
-                True,
-            # 3.15 policy: never synthesize date_end.
-            "l10n_ua_end_date_inferred":
-                False,
-            "l10n_ua_end_date_unresolved":
-                end_date_unresolved,
-            "l10n_ua_historical_calendar_unknown":
-                historical_calendar_unknown,
-            "l10n_ua_historical_wage_unknown":
-                historical_wage_unknown,
-        }
-
-        contract = Contract.create(
-            contract_vals
-        )
-
-        # hr.contract derives these fields from the employee
-        # on create. Historical facts must overwrite those
-        # current-card defaults.
-        historical_contract_vals = {
-            "department_id": (
-                self.department_id.id
-                if self.department_id
-                else (
-                    employee.department_id.id
-                    if (
-                        matches_current
-                        and employee.department_id
-                    )
-                    else False
-                )
-            ),
-            "job_id": (
-                self.job_id.id
-                if self.job_id
-                else (
-                    employee.job_id.id
-                    if (
-                        matches_current
-                        and employee.job_id
-                    )
-                    else False
-                )
-            ),
-            # Native hr.contract/resource_calendar_id is
-            # NOT NULL in production. When the historical
-            # source does not state a schedule, keep the
-            # technical calendar selected above and record
-            # the uncertainty explicitly instead of writing
-            # False.
-            "resource_calendar_id":
-                technical_calendar.id,
-        }
-
-        if self.professional_category_id:
-            historical_contract_vals[
-                "professional_category_id"
-            ] = (
-                self.professional_category_id.id
-            )
-
-        contract.write(
-            historical_contract_vals
-        )
-
-        if matches_current:
-            # Only an explicitly matched modern period may
-            # become the operational current contract.
-            employee.write(
-                {
-                    "contract_id": contract.id,
+                % {
+                    "employee":
+                        employee.name,
+                    "date":
+                        self.effective_date,
                 }
             )
 
-        # For every other historical hire we intentionally do
-        # NOT write active/current personnel number/current
-        # department/current job/current hire date to
-        # hr.employee. Those are present-day operational
-        # fields, not a reconstruction scratchpad.
+        period = candidates[:1]
+
+        if period:
+            intervening = (
+                self.env[
+                    "hr.personnel.employment.period"
+                ]
+                .sudo()
+                .search(
+                    [
+                        (
+                            "employee_id",
+                            "=",
+                            employee.id,
+                        ),
+                        (
+                            "company_id",
+                            "=",
+                            self.company_id.id,
+                        ),
+                        (
+                            "id",
+                            "!=",
+                            period.id,
+                        ),
+                        (
+                            "date_start",
+                            "!=",
+                            False,
+                        ),
+                        (
+                            "date_start",
+                            ">",
+                            self.effective_date,
+                        ),
+                        (
+                            "date_start",
+                            "<=",
+                            period.first_observed_date,
+                        ),
+                    ],
+                    limit=1,
+                )
+            )
+
+            if intervening:
+                raise ValidationError(
+                    _(
+                        "Не можна автоматично уточнити "
+                        "дату початку періоду %(period)s: "
+                        "між %(hire_date)s та першою "
+                        "відомою датою цього періоду вже "
+                        "існує інший трудовий період "
+                        "%(other)s."
+                    )
+                    % {
+                        "period":
+                            period.display_name,
+                        "hire_date":
+                            self.effective_date,
+                        "other":
+                            intervening.display_name,
+                    }
+                )
+
+            vals = {
+                "date_start":
+                    self.effective_date,
+                "first_observed_date":
+                    min(
+                        period.first_observed_date,
+                        self.effective_date,
+                    ),
+                "origin_order_line_id":
+                    self.id,
+                "start_order_line_id":
+                    self.id,
+            }
+
+            if self.employee_identification_id:
+                if (
+                    period.personnel_number
+                    and period.personnel_number
+                    != self.employee_identification_id
+                ):
+                    raise ValidationError(
+                        _(
+                            "Табельний номер %(new)s "
+                            "суперечить уже відомому "
+                            "номеру %(old)s цього "
+                            "трудового періоду."
+                        )
+                        % {
+                            "new":
+                                self.employee_identification_id,
+                            "old":
+                                period.personnel_number,
+                        }
+                    )
+
+                vals[
+                    "personnel_number"
+                ] = (
+                    self.employee_identification_id
+                )
+
+            period.with_context(
+                **{ENGINE_CONTEXT_KEY: True}
+            ).write(vals)
+
+        else:
+            period = (
+                self.env[
+                    "hr.personnel.employment.period"
+                ]
+                .sudo()
+                .with_context(
+                    **{ENGINE_CONTEXT_KEY: True}
+                )
+                .create(
+                    {
+                        "employee_id":
+                            employee.id,
+                        "company_id":
+                            self.company_id.id,
+                        "date_start":
+                            self.effective_date,
+
+                        # Never manufacture an end date.
+                        "date_end":
+                            False,
+
+                        "first_observed_date":
+                            self.effective_date,
+                        "personnel_number":
+                            (
+                                self.employee_identification_id
+                                or False
+                            ),
+                        "origin_order_line_id":
+                            self.id,
+                        "start_order_line_id":
+                            self.id,
+                        "end_order_line_id":
+                            False,
+                    }
+                )
+            )
 
         previous = {
             "previous_department_id": False,
@@ -1813,13 +2435,13 @@ class HrPersonnelOrderLineHistorical(models.Model):
         self._finalize_event(
             event,
             employee,
-            contract=contract,
+            period=period,
             previous=previous,
         )
 
         self._mark_applied(
             employee,
-            contract=contract,
+            period=period,
         )
 
     # ========================================================
@@ -1837,173 +2459,76 @@ class HrPersonnelOrderLineHistorical(models.Model):
 
         self.ensure_one()
 
-        employee = self.employee_id.sudo()
+        employee = (
+            self._historical_resolve_employee()
+        )
 
-        contract = (
-            self._historical_contract_at_date(
+        period = (
+            self._historical_period_at_date(
+                employee
+            )
+            or self._historical_create_partial_period(
                 employee
             )
         )
 
-        if not contract:
-            raise ValidationError(
-                _(
-                    "Для історичної кадрової "
-                    "зміни не знайдено "
-                    "трудовий період працівника "
-                    "%s на дату %s."
-                )
-                % (
-                    employee.name,
-                    self.effective_date,
-                )
-            )
-
         previous = self._actual_state(
-            employee,
-            contract=contract,
+            employee
         )
-
-        action_type = self.action_type
-
-        contract_vals = {
-            "l10n_ua_personnel_order_line_id":
-                self.id,
-        }
-
-        employee_vals = {}
-
-        if (
-            action_type
-            in {
-                "transfer",
-                "department_change",
-                "employment_condition_change",
-            }
-            and self.department_id
-        ):
-            contract_vals[
-                "department_id"
-            ] = self.department_id.id
-
-            employee_vals[
-                "department_id"
-            ] = self.department_id.id
-
-        if (
-            action_type
-            in {
-                "transfer",
-                "position_change",
-                "employment_condition_change",
-            }
-            and self.job_id
-        ):
-            contract_vals[
-                "job_id"
-            ] = self.job_id.id
-
-            employee_vals[
-                "job_id"
-            ] = self.job_id.id
-
-        if (
-            action_type
-            in {
-                "transfer",
-                "schedule_change",
-                "employment_condition_change",
-            }
-            and self.resource_calendar_id
-        ):
-            contract_vals[
-                "resource_calendar_id"
-            ] = (
-                self.resource_calendar_id.id
-            )
-
-            contract_vals[
-                "l10n_ua_historical_calendar_unknown"
-            ] = False
-
-            employee_vals[
-                "resource_calendar_id"
-            ] = (
-                self.resource_calendar_id.id
-            )
-
-        if self.professional_category_id:
-            contract_vals[
-                "professional_category_id"
-            ] = (
-                self.professional_category_id.id
-            )
-
-        if (
-            action_type == "salary_change"
-            or (
-                action_type
-                in {
-                    "transfer",
-                    "employment_condition_change",
-                }
-                and self.wage > 0
-            )
-        ):
-            contract_vals["wage"] = self.wage
-            contract_vals[
-                "l10n_ua_historical_wage_unknown"
-            ] = False
-
-        if self.work_type:
-            contract_vals[
-                "l10n_ua_work_type"
-            ] = self.work_type
-
-        if self.hire_condition:
-            contract_vals[
-                "l10n_ua_hire_condition"
-            ] = self.hire_condition
-
-        if self.weekly_hours > 0:
-            contract_vals[
-                "l10n_ua_weekly_hours"
-            ] = self.weekly_hours
-
-        if self.work_conditions:
-            contract_vals[
-                "l10n_ua_work_conditions"
-            ] = self.work_conditions
-
-        if self.allowance_note:
-            contract_vals[
-                "l10n_ua_allowance_note"
-            ] = self.allowance_note
-
-        contract.write(contract_vals)
-
-        next_contract = (
-            self._historical_next_contract(
-                employee,
-                self.effective_date,
-            )
-        )
-
-        # Historical backfill changes the temporal contract
-        # and immutable event ledger only. It must never
-        # rewrite today's employee card merely because no
-        # later historical year has been imported yet.
 
         self._finalize_event(
             event,
             employee,
-            contract=contract,
+            period=period,
             previous=previous,
         )
 
         self._mark_applied(
             employee,
-            contract=contract,
+            period=period,
+        )
+
+    # ========================================================
+    # Historical leave / absence
+    # ========================================================
+
+    def _apply_historical_leave(
+        self,
+        event,
+    ):
+        self.ensure_one()
+
+        employee = (
+            self._historical_resolve_employee()
+        )
+
+        period = (
+            self._historical_period_at_date(
+                employee,
+                self._event_effective_date(),
+            )
+            or self._historical_create_partial_period(
+                employee,
+                self._event_effective_date(),
+            )
+        )
+
+        previous = self._actual_state(
+            employee
+        )
+
+        # Deliberately event-only. Historical reconstruction
+        # must not create/validate operational leave records.
+        self._finalize_event(
+            event,
+            employee,
+            period=period,
+            previous=previous,
+        )
+
+        self._mark_applied(
+            employee,
+            period=period,
         )
 
     # ========================================================
@@ -2021,63 +2546,106 @@ class HrPersonnelOrderLineHistorical(models.Model):
 
         self.ensure_one()
 
-        employee = self.employee_id.sudo()
+        employee = (
+            self._historical_resolve_employee()
+        )
 
-        contract = (
-            self._historical_contract_at_date(
+        period = (
+            self._historical_period_at_date(
+                employee,
+                self.effective_date,
+            )
+            or self._historical_create_partial_period(
                 employee,
                 self.effective_date,
             )
         )
 
-        if not contract:
+        previous = self._actual_state(
+            employee
+        )
+
+        if (
+            period.date_end
+            and period.date_end
+            != self.effective_date
+        ):
             raise ValidationError(
                 _(
-                    "Для історичного звільнення "
-                    "не знайдено трудовий період "
-                    "працівника %s на дату %s."
+                    "Трудовий період %(period)s вже має "
+                    "підтверджену дату завершення %(date)s."
                 )
-                % (
-                    employee.name,
-                    self.effective_date,
-                )
+                % {
+                    "period":
+                        period.display_name,
+                    "date":
+                        period.date_end,
+                }
             )
 
-        previous = self._actual_state(
-            employee,
-            contract=contract,
-        )
+        if not period.date_end:
+            period.with_context(
+                **{ENGINE_CONTEXT_KEY: True}
+            ).write(
+                {
+                    "date_end":
+                        self.effective_date,
+                    "end_order_line_id":
+                        self.id,
+                }
+            )
 
-        contract.write(
-            {
-                "date_end":
-                    self.effective_date,
-                "state": "close",
-                "l10n_ua_personnel_order_line_id":
-                    self.id,
-                "l10n_ua_end_date_inferred":
-                    False,
-                "l10n_ua_end_date_unresolved":
-                    False,
-            }
-        )
-
-        # Do not write active/departure_date/current position
-        # to hr.employee in historical mode. The current
-        # employee card represents today's operational state.
-        # Historical dismissal facts live in the contract and
-        # immutable personnel event.
-
+        # Current hr.employee.active / departure fields
+        # intentionally remain untouched.
         self._finalize_event(
             event,
             employee,
-            contract=contract,
+            period=period,
             previous=previous,
         )
 
         self._mark_applied(
             employee,
-            contract=contract,
+            period=period,
+        )
+
+    # ========================================================
+    # Other historical personnel facts
+    # ========================================================
+
+    def _apply_historical_generic(
+        self,
+        event,
+    ):
+        self.ensure_one()
+
+        employee = (
+            self._historical_resolve_employee()
+        )
+
+        period = (
+            self._historical_period_at_date(
+                employee
+            )
+            or self._historical_create_partial_period(
+                employee
+            )
+        )
+
+        previous = self._actual_state(
+            employee
+        )
+
+        self._finalize_event(
+            event,
+            employee,
+            period=period,
+            previous=previous,
+        )
+
+        self._mark_applied(
+            employee,
+            period=period,
         )
 
     # ========================================================
@@ -2120,7 +2688,8 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 {
                     "last_application_attempt_at":
                         fields.Datetime.now(),
-                    "application_error": False,
+                    "application_error":
+                        False,
                 }
             )
 
@@ -2146,16 +2715,17 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 )
 
             elif action_type == "leave":
-                # Base leave implementation is safe:
-                # _current_contract, _actual_state and
-                # _finalize_event are temporal-aware here.
-                line._apply_leave(event)
+                line._apply_historical_leave(
+                    event
+                )
 
             elif action_type == "termination":
-                line._apply_termination(event)
+                line._apply_termination(
+                    event
+                )
 
             else:
-                line._apply_generic_event(
+                line._apply_historical_generic(
                     event
                 )
 

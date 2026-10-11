@@ -63,33 +63,27 @@
                            col="1">
                         <field name="l10n_ua_first_employment_date"/>
 
-                        <field name="contract_ids"
-                               string="Трудові періоди"
+                        <field name="l10n_ua_employment_period_ids"
+                               string="Фактичні трудові періоди"
                                nolabel="1"
                                readonly="1">
                             <list create="0"
                                   edit="0"
                                   delete="0"
-                                  default_order="date_start asc, id asc">
+                                  default_order="date_start asc, first_observed_date asc, id asc">
                                 <field name="date_start"/>
                                 <field name="date_end"/>
-                                <field name="l10n_ua_historical_reconstruction"
-                                       optional="show"/>
-                                <field name="l10n_ua_end_date_inferred"
-                                       optional="show"/>
-                                <field name="l10n_ua_end_date_unresolved"
-                                       optional="show"/>
-                                <field name="l10n_ua_historical_calendar_unknown"
-                                       optional="hide"/>
-                                <field name="l10n_ua_historical_wage_unknown"
-                                       optional="hide"/>
-                                <field name="l10n_ua_personnel_number"/>
-                                <field name="department_id"/>
-                                <field name="job_id"/>
-                                <field name="l10n_ua_work_type"/>
-                                <field name="l10n_ua_hire_order_id"/>
-                                <field name="state"
+                                <field name="boundary_state"
                                        widget="badge"/>
+                                <field name="personnel_number"/>
+                                <field name="first_observed_date"
+                                       optional="hide"/>
+                                <field name="start_order_line_id"
+                                       optional="show"/>
+                                <field name="end_order_line_id"
+                                       optional="show"/>
+                                <field name="origin_order_line_id"
+                                       optional="hide"/>
                             </list>
                         </field>
                     </group>

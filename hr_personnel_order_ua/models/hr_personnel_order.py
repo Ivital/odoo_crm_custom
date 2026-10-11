@@ -114,14 +114,6 @@ class HrPersonnelOrder(models.Model):
 
     _sql_constraints = [
         (
-            "number_company_year_unique",
-            "unique(number, company_id, order_year)",
-            (
-                "Номер кадрового наказу має бути унікальним "
-                "у межах підприємства та календарного року."
-            ),
-        ),
-        (
             "source_key_company_unique",
             "unique(source_key, company_id)",
             (
