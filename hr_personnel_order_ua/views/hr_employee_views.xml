@@ -73,6 +73,12 @@
                                   default_order="date_start asc, id asc">
                                 <field name="date_start"/>
                                 <field name="date_end"/>
+                                <field name="l10n_ua_historical_reconstruction"
+                                       optional="show"/>
+                                <field name="l10n_ua_end_date_inferred"
+                                       optional="show"/>
+                                <field name="l10n_ua_end_date_unresolved"
+                                       optional="show"/>
                                 <field name="l10n_ua_personnel_number"/>
                                 <field name="department_id"/>
                                 <field name="job_id"/>

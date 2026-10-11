@@ -65,7 +65,7 @@ class TestPersonnelOrderApplication(TransactionCase):
         for field in employee_fields:
             self.assertEqual(
                 field.get("context"),
-                "{'active_test': order_type != 'hire'}",
+                "{'active_test': action_type != 'hire'}",
             )
 
     def test_01_future_transfer_is_planned_only(self):
@@ -309,6 +309,725 @@ class TestPersonnelOrderApplication(TransactionCase):
         self.assertEqual(len(contracts), 2)
         self.assertEqual(contracts[0], first_contract)
         self.assertEqual(contracts[1], second_contract)
+
+    def test_04_historical_backfill_preserves_newer_current_period(self):
+        today = fields.Date.today()
+
+        current_start = today - timedelta(days=5)
+
+        historical_hire_date = (
+            fields.Date.from_string(
+                "2004-09-03"
+            )
+        )
+
+        historical_transfer_date = (
+            fields.Date.from_string(
+                "2005-01-10"
+            )
+        )
+
+        historical_termination_date = (
+            current_start
+            - timedelta(days=10)
+        )
+
+        employee = self.env["hr.employee"].create({
+            "name": "Історичний Працівник Тест",
+            "company_id": self.env.company.id,
+            "identification_id": "NEW-TAB-2026",
+            "service_hire_date": current_start,
+            "department_id": self.department_b.id,
+            "job_id": self.job_b.id,
+        })
+
+        current_contract = (
+            self.env["hr.contract"].create({
+                "name": "Поточний контракт 2026",
+                "employee_id": employee.id,
+                "company_id": self.env.company.id,
+                "date_start": current_start,
+                "wage": 30000.0,
+                "state": "open",
+                "l10n_ua_personnel_number":
+                    "NEW-TAB-2026",
+            })
+        )
+
+        employee.write({
+            "contract_id": current_contract.id,
+        })
+
+        historical_hire = (
+            self.env["hr.personnel.order"].create({
+                "number": "01-к",
+                "order_date":
+                    historical_hire_date,
+                "entry_mode": "historical",
+                "order_type": "other",
+                "subject":
+                    "Історичне прийняття",
+                "line_ids": [(0, 0, {
+                    "employee_id":
+                        employee.id,
+                    "historical_action_type":
+                        "hire",
+                    "employee_identification_id":
+                        "OLD-TAB-2004",
+                    "effective_date":
+                        historical_hire_date,
+                    "department_id":
+                        self.department.id,
+                    "job_id":
+                        self.job.id,
+                    "wage": 0.0,
+                })],
+            })
+        )
+
+        self.assertEqual(
+            historical_hire.number,
+            "01-к",
+        )
+        self.assertEqual(
+            historical_hire.order_year,
+            2004,
+        )
+
+        historical_hire.action_register_historical()
+
+        employee.invalidate_recordset()
+        current_contract.invalidate_recordset()
+
+        historical_line = (
+            historical_hire.line_ids
+        )
+
+        historical_contract = (
+            historical_line.contract_id
+        )
+
+        self.assertEqual(
+            historical_line.action_type,
+            "hire",
+        )
+
+        self.assertEqual(
+            historical_hire.event_ids.event_type,
+            "hire",
+        )
+
+        self.assertNotEqual(
+            historical_contract,
+            current_contract,
+        )
+
+        self.assertEqual(
+            historical_contract.date_start,
+            historical_hire_date,
+        )
+
+        self.assertEqual(
+            historical_contract.date_end,
+            current_start - timedelta(days=1),
+        )
+
+        self.assertEqual(
+            historical_contract.state,
+            "close",
+        )
+
+        self.assertEqual(
+            historical_contract.l10n_ua_personnel_number,
+            "OLD-TAB-2004",
+        )
+
+        self.assertEqual(
+            historical_contract.job_id,
+            self.job,
+        )
+
+        self.assertEqual(
+            historical_contract.department_id,
+            self.department,
+        )
+
+        # Current 2026 employment must stay live.
+        self.assertTrue(
+            employee.active
+        )
+
+        self.assertEqual(
+            employee.identification_id,
+            "NEW-TAB-2026",
+        )
+
+        self.assertEqual(
+            employee.service_hire_date,
+            current_start,
+        )
+
+        self.assertEqual(
+            employee.contract_id,
+            current_contract,
+        )
+
+        self.assertEqual(
+            employee.job_id,
+            self.job_b,
+        )
+
+        self.assertEqual(
+            employee.department_id,
+            self.department_b,
+        )
+
+        # First-ever employment is reconstructed.
+        self.assertEqual(
+            employee.l10n_ua_first_employment_date,
+            historical_hire_date,
+        )
+
+        historical_transfer = (
+            self.env["hr.personnel.order"].create({
+                "number":
+                    "01-к",
+                "order_date":
+                    historical_transfer_date,
+                "entry_mode": "historical",
+                "order_type": "other",
+                "subject":
+                    "Історичне переведення",
+                "line_ids": [(0, 0, {
+                    "employee_id":
+                        employee.id,
+                    "historical_action_type":
+                        "transfer",
+                    "effective_date":
+                        historical_transfer_date,
+                    "job_id":
+                        self.job_b.id,
+                })],
+            })
+        )
+
+        self.assertEqual(
+            historical_transfer.number,
+            "01-к",
+        )
+        self.assertEqual(
+            historical_transfer.order_year,
+            2005,
+        )
+
+        historical_transfer.action_register_historical()
+
+        employee.invalidate_recordset()
+        historical_contract.invalidate_recordset()
+
+        self.assertEqual(
+            historical_transfer.line_ids.action_type,
+            "transfer",
+        )
+
+        self.assertEqual(
+            historical_transfer.event_ids.event_type,
+            "transfer",
+        )
+
+        self.assertEqual(
+            historical_contract.job_id,
+            self.job_b,
+        )
+
+        self.assertEqual(
+            employee.contract_id,
+            current_contract,
+        )
+
+        self.assertEqual(
+            employee.identification_id,
+            "NEW-TAB-2026",
+        )
+
+        self.assertEqual(
+            employee.service_hire_date,
+            current_start,
+        )
+
+        historical_termination = (
+            self.env["hr.personnel.order"].create({
+                "number":
+                    "01-к",
+                "order_date":
+                    historical_termination_date,
+                "entry_mode": "historical",
+                "order_type": "other",
+                "subject":
+                    "Історичне звільнення",
+                "line_ids": [(0, 0, {
+                    "employee_id":
+                        employee.id,
+                    "historical_action_type":
+                        "termination",
+                    "effective_date":
+                        historical_termination_date,
+                })],
+            })
+        )
+
+        historical_termination.action_register_historical()
+
+        employee.invalidate_recordset()
+        historical_contract.invalidate_recordset()
+        current_contract.invalidate_recordset()
+
+        self.assertEqual(
+            historical_termination.line_ids.action_type,
+            "termination",
+        )
+
+        self.assertEqual(
+            historical_termination.event_ids.event_type,
+            "termination",
+        )
+
+        self.assertEqual(
+            historical_contract.date_end,
+            historical_termination_date,
+        )
+
+        self.assertEqual(
+            historical_contract.state,
+            "close",
+        )
+
+        # Current 2026 employment still untouched.
+        self.assertTrue(
+            employee.active
+        )
+
+        self.assertEqual(
+            employee.contract_id,
+            current_contract,
+        )
+
+        self.assertEqual(
+            current_contract.state,
+            "open",
+        )
+
+        self.assertEqual(
+            current_contract.date_start,
+            current_start,
+        )
+
+        self.assertEqual(
+            current_contract.l10n_ua_personnel_number,
+            "NEW-TAB-2026",
+        )
+
+        self.assertEqual(
+            employee.identification_id,
+            "NEW-TAB-2026",
+        )
+
+        events = (
+            self.env["hr.personnel.event"]
+            .search(
+                [
+                    (
+                        "employee_id",
+                        "=",
+                        employee.id,
+                    ),
+                    (
+                        "order_id",
+                        "in",
+                        [
+                            historical_hire.id,
+                            historical_transfer.id,
+                            historical_termination.id,
+                        ],
+                    ),
+                ],
+                order=(
+                    "effective_date asc, "
+                    "id asc"
+                ),
+            )
+        )
+
+        self.assertEqual(
+            events.mapped("event_type"),
+            [
+                "hire",
+                "transfer",
+                "termination",
+            ],
+        )
+
+        self.assertEqual(
+            events[0].employee_identification_id,
+            "OLD-TAB-2004",
+        )
+
+        self.assertEqual(
+            events[1].employee_identification_id,
+            "OLD-TAB-2004",
+        )
+
+        self.assertEqual(
+            events[2].employee_identification_id,
+            "OLD-TAB-2004",
+        )
+
+    def test_04_historical_backfill_preserves_active_card_without_contract(self):
+        historical_date = fields.Date.from_string(
+            "2004-09-03"
+        )
+        current_start = fields.Date.from_string(
+            "2026-04-09"
+        )
+
+        employee = self.env["hr.employee"].create({
+            "name": "Іващенко Віталій Тестовий",
+            "company_id": self.env.company.id,
+            "identification_id": "1261",
+            "service_hire_date": current_start,
+            "department_id": self.department_b.id,
+            "job_id": self.job_b.id,
+            "active": True,
+        })
+
+        self.assertFalse(
+            employee.contract_id
+        )
+
+        order = self.env["hr.personnel.order"].create({
+            "number": "03-к",
+            "order_date": historical_date,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject": "Історичне прийняття",
+            "line_ids": [(0, 0, {
+                "employee_id": employee.id,
+                "historical_action_type": "hire",
+                "employee_identification_id":
+                    "OLD-2004",
+                "effective_date":
+                    historical_date,
+                "department_id":
+                    self.department.id,
+                "job_id":
+                    self.job.id,
+                "wage": 0.0,
+            })],
+        })
+
+        order.action_register_historical()
+
+        employee.invalidate_recordset()
+
+        contract = order.line_ids.contract_id
+
+        self.assertTrue(contract)
+        self.assertTrue(
+            contract.l10n_ua_historical_reconstruction
+        )
+        self.assertTrue(
+            contract.l10n_ua_end_date_inferred
+        )
+        self.assertFalse(
+            contract.l10n_ua_end_date_unresolved
+        )
+        self.assertEqual(
+            contract.date_start,
+            historical_date,
+        )
+        self.assertEqual(
+            contract.date_end,
+            current_start - timedelta(days=1),
+        )
+        self.assertEqual(
+            contract.state,
+            "close",
+        )
+        self.assertEqual(
+            contract.l10n_ua_personnel_number,
+            "OLD-2004",
+        )
+
+        # Modern imported employee card is protected.
+        self.assertTrue(employee.active)
+        self.assertFalse(employee.contract_id)
+        self.assertEqual(
+            employee.identification_id,
+            "1261",
+        )
+        self.assertEqual(
+            employee.service_hire_date,
+            current_start,
+        )
+        self.assertEqual(
+            employee.department_id,
+            self.department_b,
+        )
+        self.assertEqual(
+            employee.job_id,
+            self.job_b,
+        )
+
+        termination_date = (
+            current_start - timedelta(days=4)
+        )
+
+        termination = (
+            self.env["hr.personnel.order"].create({
+                "number": "04-к",
+                "order_date": termination_date,
+                "entry_mode": "historical",
+                "order_type": "termination",
+                "subject":
+                    "Історичне звільнення",
+                "line_ids": [(0, 0, {
+                    "employee_id":
+                        employee.id,
+                    "historical_action_type":
+                        "termination",
+                    "effective_date":
+                        termination_date,
+                })],
+            })
+        )
+
+        termination.action_register_historical()
+
+        employee.invalidate_recordset()
+        contract.invalidate_recordset()
+
+        # Real dismissal replaces the provisional boundary.
+        self.assertEqual(
+            contract.date_end,
+            termination_date,
+        )
+        self.assertFalse(
+            contract.l10n_ua_end_date_inferred
+        )
+        self.assertFalse(
+            contract.l10n_ua_end_date_unresolved
+        )
+
+        # Current card still remains the 2026 state.
+        self.assertTrue(employee.active)
+        self.assertFalse(employee.contract_id)
+        self.assertEqual(
+            employee.identification_id,
+            "1261",
+        )
+        self.assertEqual(
+            employee.service_hire_date,
+            current_start,
+        )
+
+        # When reconstruction reaches the documented
+        # current rehire, the current contract is materialized.
+        rehire = self.env["hr.personnel.order"].create({
+            "number": "05-к",
+            "order_date": current_start,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject": "Повторне прийняття",
+            "line_ids": [(0, 0, {
+                "employee_id": employee.id,
+                "historical_action_type": "hire",
+                "employee_identification_id":
+                    "1261",
+                "effective_date":
+                    current_start,
+                "department_id":
+                    self.department_b.id,
+                "job_id":
+                    self.job_b.id,
+                "wage": 0.0,
+            })],
+        })
+
+        rehire.action_register_historical()
+
+        employee.invalidate_recordset()
+
+        current_contract = (
+            rehire.line_ids.contract_id
+        )
+
+        self.assertEqual(
+            employee.contract_id,
+            current_contract,
+        )
+        self.assertEqual(
+            current_contract.state,
+            "open",
+        )
+        self.assertEqual(
+            current_contract.date_start,
+            current_start,
+        )
+        self.assertEqual(
+            current_contract.l10n_ua_personnel_number,
+            "1261",
+        )
+
+        self.assertEqual(
+            employee.identification_id,
+            "1261",
+        )
+        self.assertEqual(
+            employee.service_hire_date,
+            current_start,
+        )
+        self.assertEqual(
+            employee.department_id,
+            self.department_b,
+        )
+        self.assertEqual(
+            employee.job_id,
+            self.job_b,
+        )
+
+    def test_04_historical_unknown_current_start_stays_provisional(self):
+        historical_date = fields.Date.from_string(
+            "2004-08-06"
+        )
+
+        employee = self.env["hr.employee"].create({
+            "name": "Поточний Працівник Без Дати",
+            "company_id": self.env.company.id,
+            "identification_id": "CURRENT-500",
+            "department_id": self.department_b.id,
+            "job_id": self.job_b.id,
+            "active": True,
+        })
+
+        order = self.env["hr.personnel.order"].create({
+            "number": "06-к",
+            "order_date": historical_date,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject":
+                "Історичне прийняття "
+                "при невідомій сучасній даті",
+            "line_ids": [(0, 0, {
+                "employee_id": employee.id,
+                "historical_action_type": "hire",
+                "employee_identification_id":
+                    "OLD-500",
+                "effective_date":
+                    historical_date,
+                "job_id": self.job.id,
+                "department_id":
+                    self.department.id,
+                "wage": 0.0,
+            })],
+        })
+
+        order.action_register_historical()
+
+        employee.invalidate_recordset()
+
+        contract = order.line_ids.contract_id
+
+        self.assertEqual(
+            contract.state,
+            "draft",
+        )
+        self.assertFalse(
+            contract.date_end,
+        )
+        self.assertTrue(
+            contract.l10n_ua_historical_reconstruction
+        )
+        self.assertFalse(
+            contract.l10n_ua_end_date_inferred
+        )
+        self.assertTrue(
+            contract.l10n_ua_end_date_unresolved
+        )
+
+        # The unresolved old period must not become today's
+        # employee state or today's current contract.
+        self.assertFalse(
+            employee.contract_id
+        )
+        self.assertEqual(
+            employee.identification_id,
+            "CURRENT-500",
+        )
+        self.assertEqual(
+            employee.department_id,
+            self.department_b,
+        )
+        self.assertEqual(
+            employee.job_id,
+            self.job_b,
+        )
+
+    def test_04_historical_hire_allows_incomplete_old_requisites(self):
+        historical_date = (
+            fields.Date.from_string(
+                "2004-08-06"
+            )
+        )
+
+        order = self.env["hr.personnel.order"].create({
+            "number": "02-к",
+            "order_date": historical_date,
+            "entry_mode": "historical",
+            "order_type": "hire",
+            "subject":
+                "Історичне прийняття "
+                "з неповними реквізитами",
+            "line_ids": [(0, 0, {
+                "employee_name":
+                    "Архівний Працівник",
+                "effective_date":
+                    historical_date,
+                "wage": 0.0,
+            })],
+        })
+
+        order.action_register_historical()
+
+        line = order.line_ids
+        employee = line.employee_id
+        contract = line.contract_id
+
+        self.assertTrue(employee)
+        self.assertTrue(contract)
+
+        self.assertEqual(
+            line.action_type,
+            "hire",
+        )
+
+        self.assertEqual(
+            contract.date_start,
+            historical_date,
+        )
+
+        self.assertEqual(
+            contract.wage,
+            0.0,
+        )
+
+        self.assertFalse(
+            contract.l10n_ua_personnel_number,
+        )
+
+        self.assertEqual(
+            employee.contract_id,
+            contract,
+        )
 
     def test_04_leave_creates_approved_leave_with_p3_data(self):
         leave_type = self.env["hr.leave.type"].create({

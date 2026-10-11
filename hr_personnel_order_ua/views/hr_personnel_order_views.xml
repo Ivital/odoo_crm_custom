@@ -8,12 +8,16 @@
                 <field name="number"/>
                 <field name="subject"/>
                 <field name="order_type"/>
+                <field name="entry_mode"/>
                 <field name="order_date"/>
+                <field name="order_year"/>
                 <field name="company_id"/>
                 <field name="responsible_user_id"/>
                 <filter name="draft" string="Чернетки" domain="[('state', '=', 'draft')]"/>
                 <filter name="to_approve" string="На погодженні" domain="[('state', '=', 'submitted')]"/>
                 <filter name="posted" string="Проведені" domain="[('state', '=', 'posted')]"/>
+                <filter name="historical" string="Історичні"
+                        domain="[('entry_mode', '=', 'historical')]"/>
                 <separator/>
                 <filter name="group_type" string="Тип" context="{'group_by': 'order_type'}"/>
                 <filter name="group_state" string="Статус" context="{'group_by': 'state'}"/>
@@ -28,8 +32,10 @@
         <field name="arch" type="xml">
             <list string="Кадрові накази" default_order="order_date desc, id desc">
                 <field name="order_date"/>
+                <field name="order_year" optional="hide"/>
                 <field name="number"/>
                 <field name="order_type"/>
+                <field name="entry_mode" optional="show"/>
                 <field name="subject"/>
                 <field name="line_count"/>
                 <field name="pending_line_count" optional="show"/>
@@ -47,17 +53,24 @@
         <field name="arch" type="xml">
             <form string="Кадровий наказ">
                 <header>
+                    <button name="action_register_historical"
+                            type="object"
+                            string="Зареєструвати історичний"
+                            class="btn-primary"
+                            groups="hr.group_hr_manager"
+                            invisible="state != 'draft' or entry_mode != 'historical'"/>
                     <button name="action_submit" type="object" string="На погодження"
-                            class="btn-primary" invisible="state != 'draft'"/>
+                            class="btn-primary"
+                            invisible="state != 'draft' or entry_mode != 'current'"/>
                     <button name="action_approve" type="object" string="Погодити"
                             class="btn-primary" groups="hr.group_hr_manager"
-                            invisible="state != 'submitted'"/>
+                            invisible="state != 'submitted' or entry_mode != 'current'"/>
                     <button name="action_sign" type="object" string="Позначити підписаним"
                             class="btn-primary" groups="hr.group_hr_manager"
-                            invisible="state != 'approved'"/>
+                            invisible="state != 'approved' or entry_mode != 'current'"/>
                     <button name="action_post" type="object" string="Провести"
                             class="btn-primary" groups="hr.group_hr_manager"
-                            invisible="state != 'signed'"/>
+                            invisible="state != 'signed' or entry_mode != 'current'"/>
                     <button name="action_retry_pending" type="object"
                             string="Повторити застосування"
                             groups="hr.group_hr_manager"
@@ -83,6 +96,10 @@
                         </button>
                     </div>
 
+                    <widget name="web_ribbon"
+                            title="Історичне відновлення"
+                            bg_color="text-bg-info"
+                            invisible="entry_mode != 'historical'"/>
                     <widget name="web_ribbon" title="Проведено"
                             bg_color="text-bg-success" invisible="state != 'posted'"/>
                     <widget name="web_ribbon" title="Скасовано"
@@ -101,7 +118,11 @@
                     <group>
                         <group>
                             <field name="order_date" readonly="state in ['posted', 'cancelled']"/>
-                            <field name="order_type" readonly="state != 'draft'"/>
+                            <field name="order_year" readonly="1"/>
+                            <field name="entry_mode"
+                                   readonly="state != 'draft'"/>
+                            <field name="order_type"
+                                   readonly="state != 'draft'"/>
                             <field name="company_id" groups="base.group_multi_company"
                                    readonly="state in ['posted', 'cancelled']"/>
                         </group>
@@ -120,33 +141,42 @@
                                 <list>
                                     <field name="sequence" widget="handle"/>
                                     <field name="order_type" column_invisible="True"/>
+                                    <field name="entry_mode" column_invisible="True"/>
+                                    <field name="action_type" column_invisible="True"/>
+                                    <field name="historical_action_type"
+                                           column_invisible="parent.entry_mode != 'historical'"/>
                                     <field name="employee_id"
-                                           context="{'active_test': order_type != 'hire'}"/>
-                                    <field name="employee_name" column_invisible="parent.order_type != 'hire'"/>
+                                           context="{'active_test': action_type != 'hire'}"/>
+                                    <field name="employee_name"
+                                           column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'hire'"/>
                                     <field name="employee_identification_id" optional="show"/>
                                     <field name="effective_date"/>
                                     <field name="department_id"
-                                           column_invisible="parent.order_type not in ['hire', 'transfer', 'department_change', 'position_change', 'employment_condition_change']"/>
+                                           column_invisible="parent.entry_mode != 'historical' and parent.order_type not in ['hire', 'transfer', 'department_change', 'position_change', 'employment_condition_change']"/>
                                     <field name="job_id"
-                                           column_invisible="parent.order_type not in ['hire', 'transfer', 'position_change', 'department_change', 'employment_condition_change']"/>
+                                           column_invisible="parent.entry_mode != 'historical' and parent.order_type not in ['hire', 'transfer', 'position_change', 'department_change', 'employment_condition_change']"/>
                                     <field name="wage"
-                                           column_invisible="parent.order_type not in ['hire', 'transfer', 'salary_change', 'employment_condition_change']"/>
-                                    <field name="leave_type_id" column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="leave_date_from" column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="leave_date_to" column_invisible="parent.order_type != 'leave'"/>
-                                    <field name="departure_reason_id" column_invisible="parent.order_type != 'termination'"/>
+                                           column_invisible="parent.entry_mode != 'historical' and parent.order_type not in ['hire', 'transfer', 'salary_change', 'employment_condition_change']"/>
+                                    <field name="leave_type_id" column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'leave'"/>
+                                    <field name="leave_date_from" column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'leave'"/>
+                                    <field name="leave_date_to" column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'leave'"/>
+                                    <field name="departure_reason_id" column_invisible="parent.entry_mode != 'historical' and parent.order_type != 'termination'"/>
                                     <field name="application_state" readonly="1"/>
                                     <field name="application_error" optional="show" readonly="1"/>
                                 </list>
                                 <form string="Кадрова дія">
                                     <field name="order_type" invisible="1"/>
+                                    <field name="entry_mode" invisible="1"/>
+                                    <field name="action_type" invisible="1"/>
+                                    <field name="historical_action_type"
+                                           invisible="entry_mode != 'historical'"/>
                                     <field name="company_id" invisible="1"/>
                                     <field name="currency_id" invisible="1"/>
                                     <group>
                                         <group>
                                             <field name="employee_id"
-                                           context="{'active_test': order_type != 'hire'}"/>
-                                            <field name="employee_name" invisible="order_type != 'hire'"/>
+                                           context="{'active_test': action_type != 'hire'}"/>
+                                            <field name="employee_name" invisible="action_type != 'hire'"/>
                                             <field name="employee_identification_id"/>
                                         </group>
                                         <group>
@@ -158,7 +188,7 @@
                                     </group>
                                     <notebook>
                                         <page string="Умови праці"
-                                              invisible="order_type not in ['hire', 'transfer', 'position_change', 'department_change', 'salary_change', 'schedule_change', 'employment_condition_change']">
+                                              invisible="action_type not in ['hire', 'transfer', 'position_change', 'department_change', 'salary_change', 'schedule_change', 'employment_condition_change']">
                                             <group>
                                                 <group string="Було">
                                                     <field name="previous_department_id" readonly="1"/>
@@ -185,7 +215,7 @@
                                                 <field name="allowance_note"/>
                                             </group>
                                         </page>
-                                        <page string="Відпустка" invisible="order_type != 'leave'">
+                                        <page string="Відпустка" invisible="action_type != 'leave'">
                                             <group>
                                                 <field name="leave_type_id"/>
                                                 <field name="work_period_from"/>
@@ -197,7 +227,7 @@
                                                 <field name="leave_id" readonly="1"/>
                                             </group>
                                         </page>
-                                        <page string="Звільнення" invisible="order_type != 'termination'">
+                                        <page string="Звільнення" invisible="action_type != 'termination'">
                                             <group>
                                                 <field name="departure_reason_id"/>
                                                 <field name="legal_reason"/>

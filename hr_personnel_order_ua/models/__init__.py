@@ -6,3 +6,4 @@ from . import hr_contract
 from . import hr_leave
 from . import hr_employee
 from . import hr_personnel_reports
+from . import hr_historical_reconstruction

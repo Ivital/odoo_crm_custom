@@ -26,6 +26,13 @@ class HrPersonnelOrder(models.Model):
         tracking=True,
         index=True,
     )
+    order_year = fields.Integer(
+        string="Рік наказу",
+        compute="_compute_order_year",
+        store=True,
+        readonly=True,
+        index=True,
+    )
     order_type = fields.Selection(
         ORDER_TYPE_SELECTION,
         string="Тип наказу",
@@ -107,11 +114,23 @@ class HrPersonnelOrder(models.Model):
 
     _sql_constraints = [
         (
-            "number_company_unique",
-            "unique(number, company_id)",
-            "Номер кадрового наказу має бути унікальним у межах підприємства.",
+            "number_company_year_unique",
+            "unique(number, company_id, order_year)",
+            (
+                "Номер кадрового наказу має бути унікальним "
+                "у межах підприємства та календарного року."
+            ),
         ),
     ]
+
+    @api.depends("order_date")
+    def _compute_order_year(self):
+        for order in self:
+            order.order_year = (
+                order.order_date.year
+                if order.order_date
+                else False
+            )
 
     @api.depends(
         "line_ids",
