@@ -14,6 +14,8 @@ class TestPersonnelReports(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
 
+        cls.ukraine = cls.env.ref("base.ua")
+
         cls.department = cls.env["hr.department"].create(
             {
                 "name": "REPORT TEST Підрозділ",
@@ -35,6 +37,8 @@ class TestPersonnelReports(TransactionCase):
                 "job_id": cls.job.id,
                 "birthday": "1980-05-10",
                 "gender": "male",
+                "country_id": cls.ukraine.id,
+                "private_country_id": cls.ukraine.id,
                 "private_city": "Кривий Ріг",
                 "private_street": "вул. Тестова, 1",
                 "l10n_ua_p2_card_number": "P2-TEST-001",
@@ -100,10 +104,23 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertEqual(len(pages), expected_pages)
 
-        if (
-            report_xmlid
-            == "hr_personnel_order_ua.action_report_personal_card_p2"
-        ):
+        for page in pages:
+            normalized_style = page.get("style", "").replace(" ", "")
+            self.assertIn(
+                "font-family:'TimesNewRoman'",
+                normalized_style,
+            )
+            self.assertNotIn(
+                "font-family:'DejaVuSans'",
+                normalized_style,
+            )
+
+        forced_two_page_reports = {
+            "hr_personnel_order_ua.action_report_personnel_order_p1",
+            "hr_personnel_order_ua.action_report_personal_card_p2",
+        }
+
+        if report_xmlid in forced_two_page_reports:
             self.assertEqual(len(pages), 2)
             second_page_style = pages[1].get("style", "")
             self.assertIn(
@@ -193,6 +210,8 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про надання відпустки", html)
         self.assertIn("5", html)
+        self.assertIn("календарних днів", html)
+        self.assertNotIn("календарних дні(в)", html)
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personnel_order_p3",
             order,
@@ -224,6 +243,14 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про припинення трудового договору", html)
         self.assertIn("ст. 38 КЗпП України", html)
+
+        p4_text = " ".join(
+            lxml_html.fromstring(html).text_content().split()
+        )
+        self.assertIn(
+            "За власним бажанням, ст. 38 КЗпП України",
+            p4_text,
+        )
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personnel_order_p4",
             order,
@@ -255,6 +282,22 @@ class TestPersonnelReports(TransactionCase):
         self.assertIn("ОСОБОВА КАРТКА ПРАЦІВНИКА", html)
         self.assertIn("P2-TEST-001", html)
         self.assertIn("Кривий Ріг", html)
+        self.assertIn("Чоловіча", html)
+        self.assertIn("Україна", html)
+
+        p2_root = lxml_html.fromstring(html)
+        photo_cells = p2_root.xpath(
+            "//th[contains("
+            "concat(' ', normalize-space(@class), ' '), "
+            "' p2-photo-cell '"
+            ")]"
+        )
+        self.assertEqual(len(photo_cells), 1)
+        self.assertNotIn(
+            "position:absolute",
+            photo_cells[0].get("style", "").replace(" ", ""),
+        )
+
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personal_card_p2",
             self.employee,
@@ -280,3 +323,5 @@ class TestPersonnelReports(TransactionCase):
         address = self.employee._l10n_ua_report_private_address()
         self.assertIn("Кривий Ріг", address)
         self.assertIn("вул. Тестова, 1", address)
+        self.assertIn("Україна", address)
+        self.assertNotIn("Ukraine", address)

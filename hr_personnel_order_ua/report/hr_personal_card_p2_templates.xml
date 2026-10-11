@@ -13,7 +13,7 @@
                 <t t-set="events" t-value="employee._l10n_ua_report_employment_events()"/>
                 <t t-set="leaves" t-value="employee._l10n_ua_report_leaves()"/>
                 <div class="page"
-                     style="font-family:'DejaVu Sans'; font-size:8.6pt; line-height:1.18;">
+                     style="font-family:'Times New Roman'; font-size:8.6pt; line-height:1.18;">
                     <table style="width:100%; border-collapse:collapse;">
                         <tr>
                             <td style="width:58%; vertical-align:top;">
@@ -35,13 +35,26 @@
                         </tr>
                     </table>
 
-                    <table style="width:84%; margin-top:10px; border-collapse:collapse; text-align:center;">
+                    <table style="width:100%; margin-top:10px; border-collapse:collapse; text-align:center; font-size:7.4pt;">
                         <tr>
-                            <th style="border:1px solid #000; padding:3px;">Дата заповнення</th>
-                            <th style="border:1px solid #000; padding:3px;">Табельний номер</th>
-                            <th style="border:1px solid #000; padding:3px;">Індивідуальний ідентифікаційний номер</th>
-                            <th style="border:1px solid #000; padding:3px;">Стать</th>
-                            <th style="border:1px solid #000; padding:3px;">Вид роботи</th>
+                            <th style="border:1px solid #000; padding:3px; width:12%;">Дата заповнення</th>
+                            <th style="border:1px solid #000; padding:3px; width:11%;">Табельний номер</th>
+                            <th style="border:1px solid #000; padding:3px; width:24%;">Індивідуальний ідентифікаційний номер</th>
+                            <th style="border:1px solid #000; padding:3px; width:11%;">Стать</th>
+                            <th style="border:1px solid #000; padding:3px; width:18%;">Вид роботи</th>
+                            <th class="p2-photo-cell"
+                                rowspan="2"
+                                style="border:1px solid #000; width:24%; height:92px; vertical-align:middle; text-align:center; padding:3px;">
+                                <t t-if="employee.image_1920">
+                                    <img t-att-src="image_data_uri(employee.image_1920)"
+                                         style="max-width:70px; max-height:88px;"/>
+                                </t>
+                                <t t-else="">
+                                    <div style="font-size:7pt;">
+                                        Місце для фотокартки
+                                    </div>
+                                </t>
+                            </th>
                         </tr>
                         <tr>
                             <td style="border:1px solid #000; padding:4px;">
@@ -54,7 +67,7 @@
                                 <span t-esc="employee.l10n_ua_rnokpp or ''"/>
                             </td>
                             <td style="border:1px solid #000; padding:4px;">
-                                <span t-esc="employee._l10n_ua_report_selection_label('gender')"/>
+                                <span t-esc="employee._l10n_ua_report_gender_label()"/>
                             </td>
                             <td style="border:1px solid #000; padding:4px;">
                                 <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type')"/>
@@ -62,40 +75,26 @@
                         </tr>
                     </table>
 
-                    <div style="position:relative; margin-top:9px;">
-                        <div style="text-align:center; font-size:13pt; font-weight:bold;">
-                            ОСОБОВА КАРТКА ПРАЦІВНИКА №
-                            <span t-esc="employee.l10n_ua_p2_card_number or ''"/>
-                        </div>
-                        <div style="position:absolute; right:0; top:-30px; width:105px; height:130px;
-                                    border:1px solid #000; text-align:center; padding:3px;">
-                            <t t-if="employee.image_1920">
-                                <img t-att-src="image_data_uri(employee.image_1920)"
-                                     style="max-width:98px; max-height:120px;"/>
-                            </t>
-                            <t t-else="">
-                                <div style="padding-top:48px; font-size:7pt;">
-                                    місце для фотокартки
-                                </div>
-                            </t>
-                        </div>
+                    <div style="text-align:center; font-size:13pt; font-weight:bold; margin-top:9px;">
+                        ОСОБОВА КАРТКА ПРАЦІВНИКА №
+                        <span t-esc="employee.l10n_ua_p2_card_number or ''"/>
                     </div>
 
                     <div style="font-weight:bold; margin-top:12px;">І. ЗАГАЛЬНІ ВІДОМОСТІ</div>
 
-                    <div style="margin-top:5px; width:84%;">
+                    <div style="margin-top:5px; width:100%;">
                         1. Прізвище, ім’я, по батькові
                         <strong t-esc="employee.name or ''"/>
                     </div>
-                    <div style="margin-top:4px; width:84%;">
+                    <div style="margin-top:4px; width:100%;">
                         2. Дата народження
                         <strong t-esc="employee.birthday.strftime('%d.%m.%Y') if employee.birthday else ''"/>
                         &#160;&#160;&#160;
                         3. Громадянство
-                        <strong t-esc="employee.country_id.name or ''"/>
+                        <strong t-esc="employee._l10n_ua_report_country_name(employee.country_id)"/>
                     </div>
 
-                    <div style="margin-top:6px; width:84%;">
+                    <div style="margin-top:6px; width:100%;">
                         4. Освіта:
                         <strong t-esc="employee._l10n_ua_report_selection_label('certificate')"/>
                     </div>
@@ -293,7 +292,7 @@
                 </div>
 
                 <div class="page"
-                     style="page-break-before:always; font-family:'DejaVu Sans'; font-size:8.4pt; line-height:1.16;">
+                     style="page-break-before:always; font-family:'Times New Roman'; font-size:8.4pt; line-height:1.16;">
                     <div style="font-weight:bold;">
                         ІІІ. ПРОФЕСІЙНА ОСВІТА НА ВИРОБНИЦТВІ
                         (ЗА РАХУНОК ПІДПРИЄМСТВА-РОБОТОДАВЦЯ)

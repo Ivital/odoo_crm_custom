@@ -18,7 +18,7 @@
                        t-value="order.signer_id.job_title or order.signer_id.job_id.name or company.l10n_ua_manager_position or 'Керівник підприємства'"/>
 
                     <div class="page"
-                         style="font-family:'DejaVu Sans'; font-size:10.5pt; line-height:1.2;">
+                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.2;">
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="width:62%; vertical-align:top;">
@@ -178,7 +178,7 @@
                                     <strong t-esc="'%.2f' % (line.wage or 0.0)"/>
                                 </td>
                                 <td style="width:36%;">
-                                    <span t-esc="line.currency_id.name or 'грн.'"/>
+                                    <span t-esc="'грн.' if line.currency_id and line.currency_id.name == 'UAH' else (line.currency_id.name if line.currency_id else 'грн.')"/>
                                 </td>
                             </tr>
                         </table>
@@ -220,7 +220,7 @@
                     <t t-set="medical"
                        t-value="line.employee_id._l10n_ua_report_latest_medical_exam() if line.employee_id else False"/>
                     <div class="page"
-                         style="font-family:'DejaVu Sans'; font-size:10.5pt; line-height:1.35;">
+                         style="page-break-before:always; font-family:'Times New Roman'; font-size:10.5pt; line-height:1.35;">
                         <div style="font-weight:bold; text-align:center; margin-bottom:18px;">
                             Типова форма № П-1 — друга сторона
                         </div>
@@ -314,7 +314,7 @@
                     <t t-set="signer_position"
                        t-value="order.signer_id.job_title or order.signer_id.job_id.name or company.l10n_ua_manager_position or 'Керівник підприємства'"/>
                     <div class="page"
-                         style="font-family:'DejaVu Sans'; font-size:10.5pt; line-height:1.3;">
+                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.3;">
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="width:60%; vertical-align:top;">
@@ -409,7 +409,7 @@
                         <div style="margin-top:10px;">
                             на
                             <strong t-esc="line.leave_calendar_days or 0"/>
-                            календарних дні(в)
+                            календарних днів
                         </div>
                         <div style="margin-top:10px;">
                             <span t-esc="'☒' if line.health_assistance else '☐'"/>
@@ -475,7 +475,7 @@
                     <t t-set="signer_position"
                        t-value="order.signer_id.job_title or order.signer_id.job_id.name or company.l10n_ua_manager_position or 'Керівник підприємства'"/>
                     <div class="page"
-                         style="font-family:'DejaVu Sans'; font-size:10.5pt; line-height:1.3;">
+                         style="font-family:'Times New Roman'; font-size:10.5pt; line-height:1.3;">
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="width:60%; vertical-align:top;">
@@ -559,6 +559,7 @@
                             <span t-esc="line.departure_reason_id.name or ''"/>
                             <t t-if="line.legal_reason">
                                 <span t-esc="line.legal_reason"/>
+                                <t t-if="line.legal_article">, </t>
                             </t>
                             <t t-if="line.legal_article">
                                 <span t-esc="line.legal_article"/>

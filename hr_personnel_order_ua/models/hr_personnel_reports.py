@@ -180,6 +180,22 @@ class HrEmployeePersonnelReport(models.Model):
         selection = field._description_selection(self.env)
         return dict(selection).get(value, value)
 
+    def _l10n_ua_report_gender_label(self):
+        self.ensure_one()
+        return {
+            "male": "Чоловіча",
+            "female": "Жіноча",
+            "other": "Інша",
+        }.get(self.gender, "")
+
+    def _l10n_ua_report_country_name(self, country):
+        self.ensure_one()
+        if not country:
+            return ""
+        if country.code == "UA":
+            return "Україна"
+        return country.with_context(lang="uk_UA").name or country.name or ""
+
     def _l10n_ua_report_private_address(self):
         self.ensure_one()
         parts = [
@@ -188,7 +204,7 @@ class HrEmployeePersonnelReport(models.Model):
             self.private_city,
             self.private_street,
             self.private_street2,
-            self.private_country_id.name if self.private_country_id else False,
+            self._l10n_ua_report_country_name(self.private_country_id),
         ]
         return ", ".join(str(part).strip() for part in parts if part)
 
