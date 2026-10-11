@@ -70,6 +70,8 @@
                             <field name="new_job_id"/>
                             <field name="new_resource_calendar_id"/>
                             <field name="new_wage"/>
+                            <field name="l10n_ua_historical_calendar_unknown"/>
+                            <field name="l10n_ua_historical_wage_unknown"/>
                             <field name="professional_category_id"/>
                         </group>
                     </group>

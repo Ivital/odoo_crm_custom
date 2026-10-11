@@ -176,6 +176,29 @@ class HrContractHistoricalReconstruction(models.Model):
         ),
     )
 
+    l10n_ua_historical_calendar_unknown = fields.Boolean(
+        string="Історичний графік роботи не встановлено",
+        readonly=True,
+        copy=False,
+        help=(
+            "Первинне джерело не містить підтвердженого "
+            "графіка роботи. Значення resource_calendar_id "
+            "у такому контракті є лише технічно необхідним "
+            "для Odoo і не є історичним фактом."
+        ),
+    )
+
+    l10n_ua_historical_wage_unknown = fields.Boolean(
+        string="Історичний оклад не встановлено",
+        readonly=True,
+        copy=False,
+        help=(
+            "Первинне джерело не містить підтвердженого "
+            "окладу. Технічне значення wage у такому "
+            "контракті не слід трактувати як історичний факт."
+        ),
+    )
+
 
 class HrPersonnelOrderHistorical(models.Model):
     _inherit = "hr.personnel.order"
@@ -914,10 +937,18 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 or False
             ),
             "previous_resource_calendar_id": (
-                contract.resource_calendar_id.id
-                or False
+                False
+                if contract.l10n_ua_historical_calendar_unknown
+                else (
+                    contract.resource_calendar_id.id
+                    or False
+                )
             ),
-            "previous_wage": contract.wage,
+            "previous_wage": (
+                0.0
+                if contract.l10n_ua_historical_wage_unknown
+                else contract.wage
+            ),
         }
 
     @api.model_create_multi
@@ -1278,10 +1309,18 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 or False
             ),
             "previous_resource_calendar_id": (
-                contract.resource_calendar_id.id
-                or False
+                False
+                if contract.l10n_ua_historical_calendar_unknown
+                else (
+                    contract.resource_calendar_id.id
+                    or False
+                )
             ),
-            "previous_wage": contract.wage,
+            "previous_wage": (
+                0.0
+                if contract.l10n_ua_historical_wage_unknown
+                else contract.wage
+            ),
         }
 
     def _finalize_event(
@@ -1335,14 +1374,40 @@ class HrPersonnelOrderLineHistorical(models.Model):
                     else False
                 ),
                 "new_resource_calendar_id": (
-                    contract.resource_calendar_id.id
-                    if contract
-                    else False
+                    False
+                    if (
+                        contract
+                        and contract.l10n_ua_historical_calendar_unknown
+                    )
+                    else (
+                        contract.resource_calendar_id.id
+                        if contract
+                        else False
+                    )
                 ),
                 "new_wage": (
-                    contract.wage
-                    if contract
-                    else self.wage
+                    0.0
+                    if (
+                        contract
+                        and contract.l10n_ua_historical_wage_unknown
+                    )
+                    else (
+                        contract.wage
+                        if contract
+                        else self.wage
+                    )
+                ),
+                "l10n_ua_historical_calendar_unknown": (
+                    bool(
+                        contract
+                        and contract.l10n_ua_historical_calendar_unknown
+                    )
+                ),
+                "l10n_ua_historical_wage_unknown": (
+                    bool(
+                        contract
+                        and contract.l10n_ua_historical_wage_unknown
+                    )
                 ),
                 "contract_id": (
                     contract.id
@@ -1578,6 +1643,50 @@ class HrPersonnelOrderLineHistorical(models.Model):
             or False
         )
 
+        source_calendar = (
+            self.resource_calendar_id
+        )
+
+        baseline_calendar = (
+            employee.resource_calendar_id
+            if (
+                matches_current
+                and employee.resource_calendar_id
+            )
+            else False
+        )
+
+        technical_calendar = (
+            source_calendar
+            or baseline_calendar
+            or self.company_id.resource_calendar_id
+        )
+
+        if not technical_calendar:
+            raise ValidationError(
+                _(
+                    "Неможливо створити історичний "
+                    "трудовий період: для підприємства "
+                    "не налаштовано технічний графік "
+                    "роботи Odoo."
+                )
+            )
+
+        historical_calendar_unknown = not bool(
+            source_calendar
+            or baseline_calendar
+        )
+
+        historical_wage_unknown = (
+            self.wage <= 0
+        )
+
+        technical_wage = (
+            self.wage
+            if self.wage > 0
+            else 0.0
+        )
+
         contract_vals = {
             "name": (
                 f"{self.order_id.number} — "
@@ -1589,7 +1698,9 @@ class HrPersonnelOrderLineHistorical(models.Model):
             "date_end": date_end,
             "trial_date_end":
                 self.trial_date_end,
-            "wage": self.wage or 0.0,
+            "wage": technical_wage,
+            "resource_calendar_id":
+                technical_calendar.id,
             "state": contract_state,
             "l10n_ua_personnel_order_line_id":
                 self.id,
@@ -1618,6 +1729,10 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 False,
             "l10n_ua_end_date_unresolved":
                 end_date_unresolved,
+            "l10n_ua_historical_calendar_unknown":
+                historical_calendar_unknown,
+            "l10n_ua_historical_wage_unknown":
+                historical_wage_unknown,
         }
 
         contract = Contract.create(
@@ -1652,18 +1767,14 @@ class HrPersonnelOrderLineHistorical(models.Model):
                     else False
                 )
             ),
-            "resource_calendar_id": (
-                self.resource_calendar_id.id
-                if self.resource_calendar_id
-                else (
-                    employee.resource_calendar_id.id
-                    if (
-                        matches_current
-                        and employee.resource_calendar_id
-                    )
-                    else False
-                )
-            ),
+            # Native hr.contract/resource_calendar_id is
+            # NOT NULL in production. When the historical
+            # source does not state a schedule, keep the
+            # technical calendar selected above and record
+            # the uncertainty explicitly instead of writing
+            # False.
+            "resource_calendar_id":
+                technical_calendar.id,
         }
 
         if self.professional_category_id:
@@ -1811,6 +1922,10 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 self.resource_calendar_id.id
             )
 
+            contract_vals[
+                "l10n_ua_historical_calendar_unknown"
+            ] = False
+
             employee_vals[
                 "resource_calendar_id"
             ] = (
@@ -1836,6 +1951,9 @@ class HrPersonnelOrderLineHistorical(models.Model):
             )
         ):
             contract_vals["wage"] = self.wage
+            contract_vals[
+                "l10n_ua_historical_wage_unknown"
+            ] = False
 
         if self.work_type:
             contract_vals[
@@ -2046,6 +2164,18 @@ class HrPersonnelOrderLineHistorical(models.Model):
 
 class HrPersonnelEventHistorical(models.Model):
     _inherit = "hr.personnel.event"
+
+    l10n_ua_historical_calendar_unknown = fields.Boolean(
+        string="Графік роботи на дату події не встановлено",
+        readonly=True,
+        copy=False,
+    )
+
+    l10n_ua_historical_wage_unknown = fields.Boolean(
+        string="Оклад на дату події не встановлено",
+        readonly=True,
+        copy=False,
+    )
 
     event_type = fields.Selection(
         ORDER_TYPE_SELECTION,

@@ -1188,6 +1188,8 @@ class TestPersonnelOrderApplication(TransactionCase):
 
         first_order.action_register_historical()
 
+        self.env.flush_all()
+
         employee = first_order.line_ids.employee_id
         contract = first_order.line_ids.contract_id
 
@@ -1206,6 +1208,18 @@ class TestPersonnelOrderApplication(TransactionCase):
         self.assertEqual(
             contract.state,
             "draft",
+        )
+
+        self.assertTrue(
+            contract.resource_calendar_id,
+        )
+
+        self.assertTrue(
+            contract.l10n_ua_historical_calendar_unknown,
+        )
+
+        self.assertTrue(
+            contract.l10n_ua_historical_wage_unknown,
         )
 
         second_order = self.env[
@@ -1323,6 +1337,11 @@ class TestPersonnelOrderApplication(TransactionCase):
 
         order.action_register_historical()
 
+        # Production hr_contract.resource_calendar_id and
+        # wage are NOT NULL. Force an actual SQL flush here so
+        # this regression cannot hide in the ORM cache.
+        self.env.flush_all()
+
         line = order.line_ids
         employee = line.employee_id
         contract = line.contract_id
@@ -1343,6 +1362,28 @@ class TestPersonnelOrderApplication(TransactionCase):
         self.assertEqual(
             contract.wage,
             0.0,
+        )
+
+        # 0.0 is only the native Odoo NOT NULL placeholder;
+        # it is explicitly NOT a historical wage fact.
+        self.assertTrue(
+            contract.l10n_ua_historical_wage_unknown,
+        )
+
+        self.assertTrue(
+            contract.resource_calendar_id,
+        )
+
+        self.assertEqual(
+            contract.resource_calendar_id,
+            self.env.company.resource_calendar_id,
+        )
+
+        # The company calendar is likewise only a technical
+        # placeholder because the source did not state the
+        # historical work schedule.
+        self.assertTrue(
+            contract.l10n_ua_historical_calendar_unknown,
         )
 
         self.assertFalse(
@@ -1372,6 +1413,29 @@ class TestPersonnelOrderApplication(TransactionCase):
 
         self.assertFalse(
             employee.service_hire_date,
+        )
+
+        event = order.event_ids
+
+        self.assertTrue(event)
+
+        self.assertTrue(
+            event.l10n_ua_historical_calendar_unknown,
+        )
+
+        self.assertTrue(
+            event.l10n_ua_historical_wage_unknown,
+        )
+
+        # Technical placeholders must not leak into the
+        # immutable event ledger as factual history.
+        self.assertFalse(
+            event.new_resource_calendar_id,
+        )
+
+        self.assertEqual(
+            event.new_wage,
+            0.0,
         )
 
     def test_04_leave_creates_approved_leave_with_p3_data(self):

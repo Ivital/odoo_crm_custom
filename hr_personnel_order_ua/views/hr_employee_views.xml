@@ -79,6 +79,10 @@
                                        optional="show"/>
                                 <field name="l10n_ua_end_date_unresolved"
                                        optional="show"/>
+                                <field name="l10n_ua_historical_calendar_unknown"
+                                       optional="hide"/>
+                                <field name="l10n_ua_historical_wage_unknown"
+                                       optional="hide"/>
                                 <field name="l10n_ua_personnel_number"/>
                                 <field name="department_id"/>
                                 <field name="job_id"/>
