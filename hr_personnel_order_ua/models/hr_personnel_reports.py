@@ -1,3 +1,6 @@
+import base64
+import binascii
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -187,6 +190,32 @@ class HrEmployeePersonnelReport(models.Model):
             "female": "Жіноча",
             "other": "Інша",
         }.get(self.gender, "")
+
+    @api.model
+    def _l10n_ua_report_image_is_svg(self, image):
+        if not image:
+            return False
+
+        try:
+            raw = base64.b64decode(image)
+        except (binascii.Error, TypeError, ValueError):
+            return False
+
+        probe = raw[:1024].lstrip().lower()
+        return probe.startswith(b"<svg") or b"<svg" in probe
+
+    def _l10n_ua_report_photo(self):
+        self.ensure_one()
+
+        image = self.image_1920
+
+        if not image:
+            return False
+
+        if self._l10n_ua_report_image_is_svg(image):
+            return False
+
+        return image
 
     def _l10n_ua_report_country_name(self, country):
         self.ensure_one()

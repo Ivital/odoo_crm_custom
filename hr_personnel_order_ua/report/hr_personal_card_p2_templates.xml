@@ -12,6 +12,7 @@
                 <t t-set="passport" t-value="employee._l10n_ua_report_passport_record()"/>
                 <t t-set="events" t-value="employee._l10n_ua_report_employment_events()"/>
                 <t t-set="leaves" t-value="employee._l10n_ua_report_leaves()"/>
+                <t t-set="report_photo" t-value="employee._l10n_ua_report_photo()"/>
                 <div class="page"
                      style="font-family:'Times New Roman'; font-size:8.6pt; line-height:1.18;">
                     <table style="width:100%; border-collapse:collapse;">
@@ -45,8 +46,8 @@
                             <th class="p2-photo-cell"
                                 rowspan="2"
                                 style="border:1px solid #000; width:24%; height:92px; vertical-align:middle; text-align:center; padding:3px;">
-                                <t t-if="employee.image_1920">
-                                    <img t-att-src="image_data_uri(employee.image_1920)"
+                                <t t-if="report_photo">
+                                    <img t-att-src="image_data_uri(report_photo)"
                                          style="max-width:70px; max-height:88px;"/>
                                 </t>
                                 <t t-else="">

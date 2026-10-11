@@ -1,3 +1,4 @@
+import base64
 from datetime import timedelta
 
 from lxml import html as lxml_html
@@ -175,6 +176,9 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про прийняття на роботу", html)
         self.assertIn("Працівник Для Друку Тестовий", html)
+        self.assertNotIn("☐", html)
+        self.assertNotIn("☒", html)
+        self.assertEqual(html.count("l10n-ua-checkbox"), 10)
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personnel_order_p1",
             order,
@@ -212,6 +216,9 @@ class TestPersonnelReports(TransactionCase):
         self.assertIn("5", html)
         self.assertIn("календарних днів", html)
         self.assertNotIn("календарних дні(в)", html)
+        self.assertNotIn("☐", html)
+        self.assertNotIn("☒", html)
+        self.assertEqual(html.count("l10n-ua-checkbox"), 1)
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personnel_order_p3",
             order,
@@ -325,3 +332,21 @@ class TestPersonnelReports(TransactionCase):
         self.assertIn("вул. Тестова, 1", address)
         self.assertIn("Україна", address)
         self.assertNotIn("Ukraine", address)
+
+    def test_report_photo_filters_svg_avatar(self):
+        svg = base64.b64encode(
+            b'<svg xmlns="http://www.w3.org/2000/svg">'
+            b'<text>AB</text>'
+            b'</svg>'
+        )
+        raster = base64.b64encode(
+            b"\x89PNG\r\n\x1a\n"
+            b"report-photo-test"
+        )
+
+        self.assertTrue(
+            self.employee._l10n_ua_report_image_is_svg(svg)
+        )
+        self.assertFalse(
+            self.employee._l10n_ua_report_image_is_svg(raster)
+        )
