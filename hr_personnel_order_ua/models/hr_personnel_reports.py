@@ -16,7 +16,7 @@ class HrPersonnelOrderReport(models.Model):
                 % form_name
             )
 
-        return self.env.ref(report_xmlid).report_action(self)
+        return self.env.ref(report_xmlid).report_action(self, config=False)
 
     def action_print_p1(self):
         return self._l10n_ua_print_order_form(
@@ -257,4 +257,4 @@ class HrEmployeePersonnelReport(models.Model):
             raise UserError(_("Не вибрано працівника для друку П-2."))
         return self.env.ref(
             "hr_personnel_order_ua.action_report_personal_card_p2"
-        ).report_action(self)
+        ).report_action(self, config=False)
