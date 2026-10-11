@@ -377,6 +377,45 @@ class TestPersonnelReports(TransactionCase):
             photo_cells[0].get("style", "").replace(" ", ""),
         )
 
+        def class_count(class_name):
+            return len(
+                p2_root.xpath(
+                    "//*[contains("
+                    "concat(' ', normalize-space(@class), ' '), "
+                    f"' {class_name} '"
+                    ")]"
+                )
+            )
+
+        self.assertEqual(
+            class_count("p2-education-school-row"),
+            4,
+        )
+        self.assertEqual(
+            class_count("p2-education-specialty-row"),
+            4,
+        )
+        self.assertEqual(
+            class_count("p2-postgraduate-row"),
+            3,
+        )
+        self.assertEqual(
+            class_count("p2-family-row"),
+            4,
+        )
+        self.assertEqual(
+            class_count("p2-military-field"),
+            9,
+        )
+        self.assertEqual(
+            class_count("p2-appointment-row"),
+            3,
+        )
+        self.assertEqual(
+            class_count("p2-leave-row"),
+            4,
+        )
+
         self._assert_standard_pdf_layout(
             "hr_personnel_order_ua.action_report_personal_card_p2",
             self.employee,
@@ -404,6 +443,42 @@ class TestPersonnelReports(TransactionCase):
         self.assertIn("вул. Тестова, 1", address)
         self.assertIn("Україна", address)
         self.assertNotIn("Ukraine", address)
+
+    def test_p2_report_text_helpers_normalize_punctuation(self):
+        self.employee.write(
+            {
+                "private_phone": "+380671234567",
+                "passport_id": "АЕ 430393",
+            }
+        )
+
+        address = (
+            self.employee
+            ._l10n_ua_report_private_address_with_phone()
+        )
+
+        self.assertIn(
+            "Україна; тел. +380671234567",
+            address,
+        )
+        self.assertNotIn(
+            "Україна ;",
+            address,
+        )
+
+        passport_text = (
+            self.employee
+            ._l10n_ua_report_passport_text(False)
+        )
+
+        self.assertEqual(
+            passport_text,
+            "АЕ 430393",
+        )
+        self.assertNotIn(
+            " ,",
+            passport_text,
+        )
 
     def test_report_photo_filters_svg_avatar(self):
         svg = base64.b64encode(

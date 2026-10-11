@@ -244,6 +244,48 @@ class HrEmployeePersonnelReport(models.Model):
         ]
         return ", ".join(str(part).strip() for part in parts if part)
 
+    def _l10n_ua_report_private_address_with_phone(self):
+        self.ensure_one()
+
+        address = self._l10n_ua_report_private_address()
+        phone = (self.private_phone or "").strip()
+
+        if address and phone:
+            return f"{address}; тел. {phone}"
+
+        if phone:
+            return f"тел. {phone}"
+
+        return address
+
+    def _l10n_ua_report_passport_text(self, passport):
+        self.ensure_one()
+
+        parts = []
+
+        passport_number = (self.passport_id or "").strip()
+        if passport_number:
+            parts.append(passport_number)
+
+        if passport:
+            if passport.partner_issued_id:
+                parts.append(
+                    f"ким виданий {passport.partner_issued_id.name}"
+                )
+
+            if passport.place_issuance:
+                parts.append(
+                    f"місце видачі {passport.place_issuance}"
+                )
+
+            if passport.date_issued:
+                parts.append(
+                    "дата видачі "
+                    f"{passport.date_issued.strftime('%d.%m.%Y')}"
+                )
+
+        return ", ".join(parts)
+
     def _l10n_ua_report_passport_record(self):
         self.ensure_one()
         partner = self.work_contact_id.sudo()
