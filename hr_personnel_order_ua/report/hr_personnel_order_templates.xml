@@ -3,7 +3,12 @@
     <template id="report_personnel_order_p1">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="order">
-                <t t-foreach="order.line_ids" t-as="line">
+                <div class="article"
+                     t-foreach="order.line_ids"
+                     t-as="line"
+                     t-att-data-oe-model="order._name"
+                     t-att-data-oe-id="order.id"
+                     t-att-data-oe-lang="order.env.context.get('lang')">
                     <t t-set="company" t-value="order.company_id"/>
                     <t t-set="employee_name"
                        t-value="line.employee_name or line.employee_id.name or ''"/>
@@ -289,7 +294,7 @@
                             <span style="float:right;">Підпис __________________________</span>
                         </div>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
@@ -297,7 +302,12 @@
     <template id="report_personnel_order_p3">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="order">
-                <t t-foreach="order.line_ids" t-as="line">
+                <div class="article"
+                     t-foreach="order.line_ids"
+                     t-as="line"
+                     t-att-data-oe-model="order._name"
+                     t-att-data-oe-id="order.id"
+                     t-att-data-oe-lang="order.env.context.get('lang')">
                     <t t-set="company" t-value="order.company_id"/>
                     <t t-set="signer_name"
                        t-value="order.signer_id.name or company.l10n_ua_manager_partner_id.name or ''"/>
@@ -445,7 +455,7 @@
                             </tr>
                         </table>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
@@ -453,7 +463,12 @@
     <template id="report_personnel_order_p4">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="order">
-                <t t-foreach="order.line_ids" t-as="line">
+                <div class="article"
+                     t-foreach="order.line_ids"
+                     t-as="line"
+                     t-att-data-oe-model="order._name"
+                     t-att-data-oe-id="order.id"
+                     t-att-data-oe-lang="order.env.context.get('lang')">
                     <t t-set="company" t-value="order.company_id"/>
                     <t t-set="signer_name"
                        t-value="order.signer_id.name or company.l10n_ua_manager_partner_id.name or ''"/>
@@ -613,7 +628,7 @@
                             </tr>
                         </table>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>

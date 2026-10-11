@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from lxml import html as lxml_html
+
 from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
@@ -72,6 +74,55 @@ class TestPersonnelReports(TransactionCase):
         self.assertTrue(html)
         return html.decode() if isinstance(html, bytes) else html
 
+    def _assert_standard_pdf_layout(
+        self,
+        report_xmlid,
+        records,
+        html,
+        *,
+        expected_pages,
+    ):
+        root = lxml_html.fromstring(html)
+
+        articles = root.xpath(
+            "//div[contains("
+            "concat(' ', normalize-space(@class), ' '), "
+            "' article '"
+            ")]"
+        )
+        self.assertEqual(len(articles), 1)
+
+        pages = articles[0].xpath(
+            ".//div[contains("
+            "concat(' ', normalize-space(@class), ' '), "
+            "' page '"
+            ")]"
+        )
+        self.assertEqual(len(pages), expected_pages)
+
+        report = self.env.ref(report_xmlid)
+
+        (
+            bodies,
+            _res_ids,
+            _header,
+            _footer,
+            _paperformat_args,
+        ) = report._prepare_html(
+            html,
+            report.model,
+        )
+
+        self.assertEqual(len(bodies), 1)
+
+        prepared_body = bodies[0]
+        if isinstance(prepared_body, bytes):
+            prepared_body = prepared_body.decode("utf-8")
+        else:
+            prepared_body = str(prepared_body)
+
+        self.assertIn('charset="utf-8"', prepared_body)
+
     def test_p1_report_action_and_html(self):
         order = self._order(
             "hire",
@@ -96,6 +147,12 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про прийняття на роботу", html)
         self.assertIn("Працівник Для Друку Тестовий", html)
+        self._assert_standard_pdf_layout(
+            "hr_personnel_order_ua.action_report_personnel_order_p1",
+            order,
+            html,
+            expected_pages=2,
+        )
 
     def test_p3_report_action_and_html(self):
         start = fields.Date.today() + timedelta(days=10)
@@ -125,6 +182,12 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про надання відпустки", html)
         self.assertIn("5", html)
+        self._assert_standard_pdf_layout(
+            "hr_personnel_order_ua.action_report_personnel_order_p3",
+            order,
+            html,
+            expected_pages=1,
+        )
 
     def test_p4_report_action_and_html(self):
         order = self._order(
@@ -150,6 +213,12 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertIn("про припинення трудового договору", html)
         self.assertIn("ст. 38 КЗпП України", html)
+        self._assert_standard_pdf_layout(
+            "hr_personnel_order_ua.action_report_personnel_order_p4",
+            order,
+            html,
+            expected_pages=1,
+        )
 
     def test_p2_report_action_and_html(self):
         action = self.employee.action_print_personal_card_p2()
@@ -158,6 +227,16 @@ class TestPersonnelReports(TransactionCase):
             "hr_personnel_order_ua.report_personal_card_p2",
         )
 
+        report = self.env.ref(
+            "hr_personnel_order_ua.action_report_personal_card_p2"
+        )
+        portrait = self.env.ref(
+            "hr_personnel_order_ua.paperformat_hr_personnel_a4_portrait"
+        )
+
+        self.assertEqual(report.paperformat_id, portrait)
+        self.assertEqual(report.paperformat_id.orientation, "Portrait")
+
         html = self._render(
             "hr_personnel_order_ua.action_report_personal_card_p2",
             self.employee,
@@ -165,6 +244,12 @@ class TestPersonnelReports(TransactionCase):
         self.assertIn("ОСОБОВА КАРТКА ПРАЦІВНИКА", html)
         self.assertIn("P2-TEST-001", html)
         self.assertIn("Кривий Ріг", html)
+        self._assert_standard_pdf_layout(
+            "hr_personnel_order_ua.action_report_personal_card_p2",
+            self.employee,
+            html,
+            expected_pages=2,
+        )
 
     def test_wrong_order_type_is_rejected(self):
         order = self._order(

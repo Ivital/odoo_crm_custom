@@ -2,7 +2,12 @@
 <odoo>
     <template id="report_personal_card_p2">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="employee">
+            <div class="article"
+                 t-foreach="docs"
+                 t-as="employee"
+                 t-att-data-oe-model="employee._name"
+                 t-att-data-oe-id="employee.id"
+                 t-att-data-oe-lang="employee.env.context.get('lang')">
                 <t t-set="company" t-value="employee.company_id"/>
                 <t t-set="passport" t-value="employee._l10n_ua_report_passport_record()"/>
                 <t t-set="events" t-value="employee._l10n_ua_report_employment_events()"/>
@@ -498,7 +503,7 @@
                         </tr>
                     </table>
                 </div>
-            </t>
+            </div>
         </t>
     </template>
 </odoo>
