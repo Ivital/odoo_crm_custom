@@ -198,6 +198,46 @@ class HrEmployeePersonnelReport(models.Model):
             "other": "Інша",
         }.get(self.gender, "")
 
+    def _l10n_ua_report_name_parts(self):
+        self.ensure_one()
+
+        parts = (self.name or "").split()
+
+        surname = parts[0] if parts else ""
+        first_name = parts[1] if len(parts) > 1 else ""
+        patronymic = " ".join(parts[2:]) if len(parts) > 2 else ""
+
+        return surname, first_name, patronymic
+
+    @api.model
+    def _l10n_ua_report_date_words(self, value):
+        if not value:
+            return ""
+
+        if isinstance(value, str):
+            value = fields.Date.from_string(value)
+
+        months = {
+            1: "січня",
+            2: "лютого",
+            3: "березня",
+            4: "квітня",
+            5: "травня",
+            6: "червня",
+            7: "липня",
+            8: "серпня",
+            9: "вересня",
+            10: "жовтня",
+            11: "листопада",
+            12: "грудня",
+        }
+
+        return (
+            f"«{value.day:02d}» "
+            f"{months[value.month]} "
+            f"{value.year}р."
+        )
+
     @api.model
     def _l10n_ua_report_image_is_svg(self, image):
         if not image:

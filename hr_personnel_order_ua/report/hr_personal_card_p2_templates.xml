@@ -8,25 +8,44 @@
                  t-att-data-oe-model="employee._name"
                  t-att-data-oe-id="employee.id"
                  t-att-data-oe-lang="employee.env.context.get('lang')">
-                <t t-set="company" t-value="employee.company_id"/>
-                <t t-set="passport" t-value="employee._l10n_ua_report_passport_record()"/>
-                <t t-set="events" t-value="employee._l10n_ua_report_employment_events()"/>
-                <t t-set="leaves" t-value="employee._l10n_ua_report_leaves()"/>
-                <t t-set="report_photo" t-value="employee._l10n_ua_report_photo()"/>
+
+                <t t-set="company"
+                   t-value="employee.company_id"/>
+                <t t-set="passport"
+                   t-value="employee._l10n_ua_report_passport_record()"/>
+                <t t-set="events"
+                   t-value="employee._l10n_ua_report_employment_events()"/>
+                <t t-set="leaves"
+                   t-value="employee._l10n_ua_report_leaves()"/>
+                <t t-set="report_photo"
+                   t-value="employee._l10n_ua_report_photo()"/>
+                <t t-set="name_parts"
+                   t-value="employee._l10n_ua_report_name_parts()"/>
+
+                <!-- ================================================== -->
+                <!-- PAGE 1                                             -->
+                <!-- ================================================== -->
+
                 <div class="page"
-                     style="font-family:'Times New Roman'; font-size:8.6pt; line-height:1.18;">
+                     style="font-family:'Times New Roman'; font-size:7.8pt; line-height:1.06;">
+
+                    <!-- Header -->
                     <table style="width:100%; border-collapse:collapse;">
                         <tr>
                             <td style="width:58%; vertical-align:top;">
-                                <strong t-esc="company.name"/>
-                                <div style="font-size:7pt;">
+                                <strong style="font-size:9pt;"
+                                        t-esc="company.name"/>
+
+                                <div style="font-size:6.8pt; text-align:center; width:72%;">
                                     Найменування підприємства (установи, організації)
                                 </div>
-                                <div style="margin-top:8px;">
+
+                                <div style="margin-top:4px;">
                                     Код ЄДРПОУ
                                     <strong t-esc="company.company_registry or ''"/>
                                 </div>
                             </td>
+
                             <td style="width:42%; vertical-align:top;">
                                 <strong>Типова форма № П-2</strong><br/>
                                 ЗАТВЕРДЖЕНО<br/>
@@ -36,151 +55,179 @@
                         </tr>
                     </table>
 
+
+                    <!-- Main identification table + photo -->
                     <table style="width:100%; margin-top:8px; border-collapse:collapse;">
                         <tr>
-                            <td style="width:76%; vertical-align:top;">
-                                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:7.2pt;">
+                            <td style="width:78%; vertical-align:top;">
+
+                                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:7pt;">
                                     <tr>
-                                        <th style="border:1px solid #000; padding:3px; width:15%;">
-                                            Дата заповнення
+                                        <th style="border:1px solid #000; width:15%; padding:2px;">
+                                            Дата<br/>заповнення
                                         </th>
-                                        <th style="border:1px solid #000; padding:3px; width:15%;">
+                                        <th style="border:1px solid #000; width:17%; padding:2px;">
                                             Табельний номер
                                         </th>
-                                        <th style="border:1px solid #000; padding:3px; width:28%;">
-                                            Індивідуальний ідентифікаційний номер
+                                        <th style="border:1px solid #000; width:27%; padding:2px;">
+                                            Індивідуальний<br/>
+                                            ідентифікаційний<br/>
+                                            номер
                                         </th>
-                                        <th style="border:1px solid #000; padding:3px; width:18%;">
+                                        <th style="border:1px solid #000; width:18%; padding:2px;">
                                             Стать<br/>
                                             <span style="font-weight:normal;">
-                                                (чоловіча, жіноча)
+                                                (чоловіча,<br/>жіноча)
                                             </span>
                                         </th>
-                                        <th style="border:1px solid #000; padding:3px; width:24%;">
+                                        <th style="border:1px solid #000; width:23%; padding:2px;">
                                             Вид роботи<br/>
                                             <span style="font-weight:normal;">
-                                                (основна, за сумісництвом)
+                                                (основна, за<br/>сумісництвом)
                                             </span>
                                         </th>
                                     </tr>
 
-                                    <tr style="height:29px;">
-                                        <td style="border:1px solid #000; padding:3px;">
-                                            <span t-esc="(employee.l10n_ua_p2_card_date or employee.service_hire_date).strftime('%d.%m.%Y') if (employee.l10n_ua_p2_card_date or employee.service_hire_date) else ''"/>
+                                    <tr style="height:25px;">
+                                        <td style="border:1px solid #000; padding:2px;">
+                                            <span t-esc="('%sр.' % (employee.l10n_ua_p2_card_date or employee.service_hire_date).strftime('%d.%m.%Y')) if (employee.l10n_ua_p2_card_date or employee.service_hire_date) else ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:3px;">
+                                        <td style="border:1px solid #000; padding:2px;">
                                             <span t-esc="employee.identification_id or ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:3px;">
+                                        <td style="border:1px solid #000; padding:2px;">
                                             <span t-esc="employee.l10n_ua_rnokpp or ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:3px;">
-                                            <span t-esc="employee._l10n_ua_report_gender_label()"/>
+                                        <td style="border:1px solid #000; padding:2px;">
+                                            <span t-esc="employee._l10n_ua_report_gender_label().lower()"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:3px;">
-                                            <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type')"/>
+                                        <td style="border:1px solid #000; padding:2px;">
+                                            <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type').lower()"/>
                                         </td>
                                     </tr>
                                 </table>
 
-                                <div style="text-align:center; font-size:12.5pt; font-weight:bold; margin-top:11px;">
-                                    ОСОБОВА КАРТКА ПРАЦІВНИКА
+                                <div style="text-align:center; font-size:12pt; font-weight:bold; margin-top:10px;">
+                                    ОСОБОВА КАРТКА ПРАЦІВНИКА №
+                                    <span t-esc="employee.l10n_ua_p2_card_number or ''"/>
                                 </div>
                             </td>
 
+                            <td style="width:2%;"></td>
+
                             <td class="p2-photo-cell"
-                                style="width:24%; border:1px solid #000; height:102px; vertical-align:middle; text-align:center; padding:3px;">
+                                style="width:20%; border:1px solid #000; height:112px; vertical-align:middle; text-align:center; padding:2px;">
                                 <t t-if="report_photo">
                                     <img t-att-src="image_data_uri(report_photo)"
-                                         style="max-width:70px; max-height:96px;"/>
+                                         style="max-width:82px; max-height:106px;"/>
                                 </t>
                                 <t t-else="">
-                                    <div style="font-size:7pt;">
-                                        Місце для фотокартки
-                                    </div>
+                                    <span style="font-size:6.8pt;">
+                                        місце для фотокартки
+                                    </span>
                                 </t>
                             </td>
                         </tr>
                     </table>
 
-                    <div style="font-weight:bold; margin-top:12px;">І. ЗАГАЛЬНІ ВІДОМОСТІ</div>
 
-                    <div style="margin-top:5px; width:100%;">
-                        1. Прізвище, ім’я, по батькові
-                        <strong t-esc="employee.name or ''"/>
+                    <!-- Section I -->
+                    <div style="font-weight:bold; font-size:8.7pt; margin-top:9px;">
+                        І. ЗАГАЛЬНІ ВІДОМОСТІ
                     </div>
-                    <div style="margin-top:4px; width:100%;">
-                        2. Дата народження
-                        <strong t-esc="employee.birthday.strftime('%d.%m.%Y') if employee.birthday else ''"/>
+
+                    <div style="margin-top:3px;">
+                        <strong>1.</strong>
+                        Прізвище
+                        <strong t-esc="name_parts[0].upper()"/>
+                        &#160;Ім'я
+                        <strong t-esc="name_parts[1].upper()"/>
+                        &#160;По батькові
+                        <strong t-esc="name_parts[2].upper()"/>
+                    </div>
+
+                    <div style="margin-top:2px;">
+                        <strong>2.</strong>
+                        Дата народження
+                        <strong t-esc="employee._l10n_ua_report_date_words(employee.birthday)"/>
+
                         &#160;&#160;&#160;
-                        3. Громадянство
-                        <strong t-esc="employee._l10n_ua_report_country_name(employee.country_id)"/>
+
+                        <strong>3.</strong>
+                        Громадянство
+                        <strong t-esc="'України' if employee.country_id.code == 'UA' else employee._l10n_ua_report_country_name(employee.country_id)"/>
                     </div>
 
-                    <div style="margin-top:6px; width:100%;">
-                        4. Освіта:
-                        <strong t-esc="employee._l10n_ua_report_selection_label('certificate')"/>
+                    <div style="margin-top:3px;">
+                        <strong>4.</strong>
+                        Освіта
+                        (базова загальна середня, повна загальна середня,
+                        професійно-технічна, неповна вища, базова вища, повна вища)
                     </div>
 
+                    <div style="font-weight:bold; min-height:12px;">
+                        <span t-esc="employee._l10n_ua_report_selection_label('certificate')"/>
+                    </div>
+
+
+                    <!-- Education: DOCX geometry = 2 school rows + 3 specialty rows -->
                     <table class="p2-education-table"
-                           style="width:100%; margin-top:3px; border-collapse:collapse;">
+                           style="width:100%; border-collapse:collapse; margin-top:2px;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:50%;">
+                            <th style="border:1px solid #000; width:52%; padding:1px;">
                                 Назва освітнього закладу
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:35%;">
+                            <th style="border:1px solid #000; width:32%; padding:1px;">
                                 Диплом (свідоцтво), серія, номер
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:15%;">
+                            <th style="border:1px solid #000; width:16%; padding:1px;">
                                 Рік закінчення
                             </th>
                         </tr>
 
                         <tr class="p2-education-school-row"
-                            style="height:19px;">
-                            <td style="border:1px solid #000; padding:2px;">
+                            style="height:17px;">
+                            <td style="border:1px solid #000; padding:1px;">
                                 <span t-esc="employee.study_school or ''"/>
                             </td>
                             <td style="border:1px solid #000;"></td>
                             <td style="border:1px solid #000;"></td>
                         </tr>
 
-                        <t t-foreach="[0, 1, 2]" t-as="row">
-                            <tr class="p2-education-school-row"
-                                style="height:19px;">
-                                <td style="border:1px solid #000;"></td>
-                                <td style="border:1px solid #000;"></td>
-                                <td style="border:1px solid #000;"></td>
-                            </tr>
-                        </t>
+                        <tr class="p2-education-school-row"
+                            style="height:17px;">
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;"></td>
+                        </tr>
 
                         <tr>
-                            <th style="border:1px solid #000; padding:2px;">
+                            <th style="border:1px solid #000; padding:1px;">
                                 Спеціальність (професія) за дипломом (свідоцтвом)
                             </th>
-                            <th style="border:1px solid #000; padding:2px;">
+                            <th style="border:1px solid #000; padding:1px;">
                                 Кваліфікація за дипломом (свідоцтвом)
                             </th>
-                            <th style="border:1px solid #000; padding:2px;">
+                            <th style="border:1px solid #000; padding:1px;">
                                 Форма навчання<br/>
                                 <span style="font-weight:normal;">
-                                    (денна, вечірня, заочна)
+                                    (денна, вечірня,<br/>заочна)
                                 </span>
                             </th>
                         </tr>
 
                         <tr class="p2-education-specialty-row"
-                            style="height:19px;">
-                            <td style="border:1px solid #000; padding:2px;">
+                            style="height:17px;">
+                            <td style="border:1px solid #000; padding:1px;">
                                 <span t-esc="employee.study_field or ''"/>
                             </td>
                             <td style="border:1px solid #000;"></td>
                             <td style="border:1px solid #000;"></td>
                         </tr>
 
-                        <t t-foreach="[0, 1, 2]" t-as="row">
+                        <t t-foreach="[0, 1]" t-as="row">
                             <tr class="p2-education-specialty-row"
-                                style="height:19px;">
+                                style="height:17px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -188,30 +235,50 @@
                         </t>
                     </table>
 
-                    <div style="margin-top:5px;">
-                        5. Післядипломна професійна підготовка:
-                        аспірантура / ад’юнктура / докторантура
+
+                    <!-- Postgraduate -->
+                    <div style="margin-top:4px;">
+                        <strong>5.</strong>
+                        Післядипломна професійна підготовка:
+                        навчання в
+
+                        <span class="p2-checkbox"
+                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                        аспірантурі
+
+                        <span class="p2-checkbox"
+                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                        ад'юнктурі
+
+                        <span class="p2-checkbox"
+                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                        докторантурі
+
+                        <span style="font-size:6.8pt;">
+                            (необхідне відмітити х)
+                        </span>
                     </div>
+
                     <table class="p2-postgraduate-table"
                            style="width:100%; margin-top:2px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px;">
-                                Назва закладу
+                            <th style="border:1px solid #000; width:32%; padding:1px;">
+                                Назва освітнього, наукового<br/>закладу
                             </th>
-                            <th style="border:1px solid #000; padding:2px;">
+                            <th style="border:1px solid #000; width:32%; padding:1px;">
                                 Диплом, номер, дата видачі
                             </th>
-                            <th style="border:1px solid #000; padding:2px;">
+                            <th style="border:1px solid #000; width:16%; padding:1px;">
                                 Рік закінчення
                             </th>
-                            <th style="border:1px solid #000; padding:2px;">
-                                Науковий ступінь, учене звання
+                            <th style="border:1px solid #000; width:20%; padding:1px;">
+                                Науковий ступінь,<br/>учене звання
                             </th>
                         </tr>
 
                         <t t-foreach="[0, 1, 2]" t-as="row">
                             <tr class="p2-postgraduate-row"
-                                style="height:20px;">
+                                style="height:17px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -220,54 +287,76 @@
                         </t>
                     </table>
 
-                    <div style="margin-top:5px;">
-                        6. Останнє місце роботи
+
+                    <!-- Items 6-9 -->
+                    <div style="margin-top:3px;">
+                        <strong>6.</strong>
+                        Останнє місце «*»
                         <strong t-esc="employee.l10n_ua_p2_last_workplace or ''"/>
-                        &#160;&#160; посада (професія)
+                        &#160; посада (професія)
                         <strong t-esc="employee.l10n_ua_p2_last_job or ''"/>
                     </div>
 
-                    <div style="margin-top:5px;">
-                        7. Стаж роботи станом на
-                        <strong t-esc="employee.l10n_ua_p2_total_service_as_of.strftime('%d.%m.%Y') if employee.l10n_ua_p2_total_service_as_of else ''"/>
-                        &#160; Загальний:
-                        <strong t-esc="employee.l10n_ua_p2_total_service_days"/> дн.
-                        <strong t-esc="employee.l10n_ua_p2_total_service_months"/> міс.
-                        <strong t-esc="employee.l10n_ua_p2_total_service_years"/> років;
-                        &#160; що дає право на надбавку за вислугу років:
-                        <strong t-esc="employee.l10n_ua_p2_seniority_days"/> дн.
-                        <strong t-esc="employee.l10n_ua_p2_seniority_months"/> міс.
-                        <strong t-esc="employee.l10n_ua_p2_seniority_years"/> років
+                    <div style="margin-top:2px;">
+                        <strong>7.</strong>
+                        Стаж роботи станом на
+                        <strong t-esc="employee._l10n_ua_report_date_words(employee.l10n_ua_p2_total_service_as_of)"/>
+
+                        &#160;&#160; Загальний
+                        <strong t-esc="employee.l10n_ua_p2_total_service_days"/> днів
+                        <strong t-esc="'%02d' % employee.l10n_ua_p2_total_service_months"/> місяців
+                        <strong t-esc="employee.l10n_ua_p2_total_service_years"/> років,
                     </div>
 
-                    <div style="margin-top:5px;">
-                        8. Дата та причина звільнення з попереднього місця роботи:
-                        <strong t-esc="employee.l10n_ua_p2_last_departure_date.strftime('%d.%m.%Y') if employee.l10n_ua_p2_last_departure_date else ''"/>
-                        <span t-esc="employee.l10n_ua_p2_last_departure_reason or ''"/>
+                    <div style="padding-left:155px;">
+                        що дає право на надбавку за вислугу років
+                        <strong t-esc="employee.l10n_ua_p2_seniority_days or '___'"/> днів
+                        <strong t-esc="employee.l10n_ua_p2_seniority_months or '___'"/> місяців
+                        <strong t-esc="employee.l10n_ua_p2_seniority_years or '____'"/> років
                     </div>
 
-                    <div style="margin-top:5px;">
-                        9. Відомості про отримання пенсії:
+                    <div style="margin-top:2px;">
+                        <strong>8.</strong>
+                        Дата та причина звільнення
+                        (скорочення штатів; за власним бажанням, за прогул та інші порушення,
+                        невідповідність займаній посаді тощо)
+                        <strong t-esc="employee._l10n_ua_report_date_words(employee.l10n_ua_p2_last_departure_date)"/>
+                        <strong t-esc="employee.l10n_ua_p2_last_departure_reason or ''"/>
+                    </div>
+
+                    <div style="margin-top:2px;">
+                        <strong>9.</strong>
+                        Відомості про отримання пенсії
+                        (у разі наявності вказати вид пенсійних виплат згідно з чинним законодавством)
                         <span t-esc="employee.l10n_ua_p2_pension_info or ''"/>
                     </div>
 
-                    <div style="margin-top:5px;">
-                        10. Родинний стан
-                        <strong t-esc="employee._l10n_ua_report_selection_label('marital')"/>
+                    <div style="border-bottom:1px solid #000; height:8px;"></div>
+
+
+                    <!-- Family -->
+                    <div style="margin-top:3px;">
+                        <strong>10.</strong>
+                        Родинний стан
+                        <strong t-esc="employee._l10n_ua_report_selection_label('marital').lower()"/>
                     </div>
+
                     <t t-set="family_row_count"
                        t-value="len(employee.relative_ids) if employee.relative_ids else (1 if employee.spouse_complete_name else 0)"/>
 
                     <table class="p2-family-table"
                            style="width:100%; margin-top:2px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:28%;">
-                                Ступінь родинного зв’язку
+                            <th style="border:1px solid #000; width:28%; padding:1px;">
+                                Ступінь родинного зв'язку<br/>
+                                <span style="font-weight:normal;">
+                                    (склад сім'ї)
+                                </span>
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:52%;">
+                            <th style="border:1px solid #000; width:52%; padding:1px;">
                                 П. І. Б.
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:20%;">
+                            <th style="border:1px solid #000; width:20%; padding:1px;">
                                 Рік народження
                             </th>
                         </tr>
@@ -275,14 +364,14 @@
                         <t t-if="employee.relative_ids">
                             <t t-foreach="employee.relative_ids" t-as="relative">
                                 <tr class="p2-family-row"
-                                    style="height:18px;">
-                                    <td style="border:1px solid #000; padding:2px;">
+                                    style="height:16px;">
+                                    <td style="border:1px solid #000; padding:1px;">
                                         <span t-esc="relative.relation_id.name or ''"/>
                                     </td>
-                                    <td style="border:1px solid #000; padding:2px;">
+                                    <td style="border:1px solid #000; padding:1px;">
                                         <span t-esc="relative.name or ''"/>
                                     </td>
-                                    <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                    <td style="border:1px solid #000; padding:1px; text-align:center;">
                                         <span t-esc="relative.date_of_birth.year if relative.date_of_birth else ''"/>
                                     </td>
                                 </tr>
@@ -291,14 +380,14 @@
 
                         <t t-elif="employee.spouse_complete_name">
                             <tr class="p2-family-row"
-                                style="height:18px;">
-                                <td style="border:1px solid #000; padding:2px;">
+                                style="height:16px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     Чоловік / дружина
                                 </td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <span t-esc="employee.spouse_complete_name"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                <td style="border:1px solid #000; padding:1px; text-align:center;">
                                     <span t-esc="employee.spouse_birthdate.year if employee.spouse_birthdate else ''"/>
                                 </td>
                             </tr>
@@ -307,7 +396,7 @@
                         <t t-foreach="[0, 1, 2, 3][:4 - family_row_count] if family_row_count &lt; 4 else []"
                            t-as="row">
                             <tr class="p2-family-row"
-                                style="height:18px;">
+                                style="height:16px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -315,117 +404,154 @@
                         </t>
                     </table>
 
-                    <div style="margin-top:5px;">
-                        11. Місце фактичного проживання:
-                        <span t-esc="employee._l10n_ua_report_private_address_with_phone()"/>
+
+                    <!-- Address -->
+                    <div style="margin-top:3px;">
+                        <strong>11.</strong>
+                        Місце фактичного проживання
+                        (область, місто, район, вулиця, № будинку, квартири,
+                        номер контактного телефону, поштовий індекс)
+                        <strong t-esc="employee._l10n_ua_report_private_address_with_phone()"/>
                     </div>
 
-                    <div style="margin-top:4px;">
-                        12. Місце проживання за державною реєстрацією:
-                        <span t-esc="employee.l10n_ua_p2_registered_address or ''"/>
+                    <div style="margin-top:2px;">
+                        <strong>12.</strong>
+                        Місце проживання за державною реєстрацією
+                        <strong t-esc="employee.l10n_ua_p2_registered_address or ''"/>
                     </div>
 
-                    <div style="margin-top:4px;">
-                        Паспорт / документ:
-                        <span t-esc="employee._l10n_ua_report_passport_text(passport)"/>
+                    <div style="margin-top:2px;">
+                        Паспорт:
+                        <strong t-esc="employee._l10n_ua_report_passport_text(passport)"/>
                     </div>
 
-                    <div style="font-weight:bold; margin-top:8px;">ІІ. ВІДОМОСТІ ПРО ВІЙСЬКОВИЙ ОБЛІК</div>
+
+                    <!-- Section II -->
+                    <div style="font-weight:bold; font-size:8.5pt; margin-top:4px;">
+                        ІІ. ВІДОМОСТІ ПРО ВІЙСЬКОВИЙ ОБЛІК
+                    </div>
+
                     <table class="p2-military-table"
-                           style="width:100%; margin-top:3px; border-collapse:collapse; font-size:7.8pt;">
+                           style="width:100%; border-collapse:collapse; margin-top:1px; font-size:7.5pt;">
                         <tr>
-                            <td style="width:50%; vertical-align:top; padding-right:8px;">
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Група обліку:
-                                    <strong t-esc="employee.l10n_ua_p2_military_group or ''"/>
+                            <td style="width:50%; vertical-align:top; padding-right:7px;">
+
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Група обліку
+                                    <strong t-if="employee.l10n_ua_p2_military_group"
+                                            t-esc="employee.l10n_ua_p2_military_group"/>
+                                    <span t-else="">____________________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Категорія обліку:
-                                    <strong t-esc="employee.l10n_ua_p2_military_category or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Категорія обліку
+                                    <strong t-if="employee.l10n_ua_p2_military_category"
+                                            t-esc="employee.l10n_ua_p2_military_category"/>
+                                    <span t-else="">_________________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Склад:
-                                    <strong t-esc="employee.l10n_ua_p2_military_composition or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Склад
+                                    <strong t-if="employee.l10n_ua_p2_military_composition"
+                                            t-esc="employee.l10n_ua_p2_military_composition"/>
+                                    <span t-else="">______________________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Військове звання:
-                                    <strong t-esc="employee.l10n_ua_p2_military_rank or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Військове звання
+                                    <strong t-if="employee.l10n_ua_p2_military_rank"
+                                            t-esc="employee.l10n_ua_p2_military_rank"/>
+                                    <span t-else="">_____________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Військово-облікова спеціальність №:
-                                    <strong t-esc="employee.l10n_ua_p2_military_specialty or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Військово-облікова спеціальність №
+                                    <strong t-if="employee.l10n_ua_p2_military_specialty"
+                                            t-esc="employee.l10n_ua_p2_military_specialty"/>
+                                    <span t-else="">______________</span>
                                 </div>
                             </td>
 
-                            <td style="width:50%; vertical-align:top; padding-left:8px;">
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Придатність до військової служби:
-                                    <strong t-esc="employee.l10n_ua_p2_military_fitness or ''"/>
+                            <td style="width:50%; vertical-align:top; padding-left:7px;">
+
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Придатність до військової служби
+                                    <strong t-if="employee.l10n_ua_p2_military_fitness"
+                                            t-esc="employee.l10n_ua_p2_military_fitness"/>
+                                    <span t-else="">___________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    ТЦК та СП за місцем реєстрації:
-                                    <strong t-esc="employee.l10n_ua_p2_military_tcc_registered or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Назва райвійськкомату за місцем реєстрації
+                                    <strong t-if="employee.l10n_ua_p2_military_tcc_registered"
+                                            t-esc="employee.l10n_ua_p2_military_tcc_registered"/>
+                                    <span t-else="">___________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    ТЦК та СП за місцем фактичного проживання:
-                                    <strong t-esc="employee.l10n_ua_p2_military_tcc_actual or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Назва райвійськкомату за місцем фактичного проживання
+                                    <strong t-if="employee.l10n_ua_p2_military_tcc_actual"
+                                            t-esc="employee.l10n_ua_p2_military_tcc_actual"/>
+                                    <span t-else="">___________________</span>
                                 </div>
 
-                                <div class="p2-military-field"
-                                     style="min-height:19px; border-bottom:1px solid #000; padding:1px 0;">
-                                    Перебування на спеціальному обліку:
-                                    <strong t-esc="employee.l10n_ua_p2_military_special_register or ''"/>
+                                <div class="p2-military-field" style="min-height:14px;">
+                                    Перебування на спеціальному обліку
+                                    <strong t-if="employee.l10n_ua_p2_military_special_register"
+                                            t-esc="employee.l10n_ua_p2_military_special_register"/>
+                                    <span t-else="">___________________</span>
                                 </div>
                             </td>
                         </tr>
                     </table>
                 </div>
 
+
+                <!-- ================================================== -->
+                <!-- PAGE 2                                             -->
+                <!-- ================================================== -->
+
                 <div class="page"
-                     style="page-break-before:always; font-family:'Times New Roman'; font-size:8.4pt; line-height:1.16;">
-                    <div style="font-weight:bold;">
+                     style="page-break-before:always; font-family:'Times New Roman'; font-size:7.4pt; line-height:1.04;">
+
+                    <div style="margin-bottom:18px;">
+                        «*» Пункти 6,8 не заповнюють на працівників - сумісників
+                    </div>
+
+
+                    <!-- III -->
+                    <div style="font-weight:bold; font-size:8.3pt;">
                         ІІІ. ПРОФЕСІЙНА ОСВІТА НА ВИРОБНИЦТВІ
                         (ЗА РАХУНОК ПІДПРИЄМСТВА-РОБОТОДАВЦЯ)
                     </div>
+
                     <table class="p2-professional-education-table"
-                           style="width:100%; margin-top:4px; border-collapse:collapse;">
+                           style="width:100%; margin-top:2px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; padding:3px; width:9%;">
+                            <th style="border:1px solid #000; width:8%; padding:1px;">
                                 Дата
                             </th>
-                            <th style="border:1px solid #000; padding:3px; width:21%;">
-                                Назва структурного підрозділу
+                            <th style="border:1px solid #000; width:23%; padding:1px;">
+                                Назва структурного<br/>підрозділу
                             </th>
-                            <th style="border:1px solid #000; padding:3px; width:14%;">
-                                Період навчання
+                            <th style="border:1px solid #000; width:12%; padding:1px;">
+                                Період<br/>навчання
                             </th>
-                            <th style="border:1px solid #000; padding:3px; width:14%;">
+                            <th style="border:1px solid #000; width:13%; padding:1px;">
                                 Вид навчання
                             </th>
-                            <th style="border:1px solid #000; padding:3px; width:14%;">
+                            <th style="border:1px solid #000; width:16%; padding:1px;">
                                 Форма навчання
                             </th>
-                            <th style="border:1px solid #000; padding:3px; width:28%;">
-                                Назва документа, що посвідчує професійну освіту, ким виданий
+                            <th style="border:1px solid #000; width:28%; padding:1px;">
+                                Назва документа, що посвідчує<br/>
+                                професійну освіту, ким виданий
                             </th>
                         </tr>
 
                         <t t-foreach="[0, 1, 2]" t-as="row">
-                            <tr style="height:36px;">
+                            <tr class="p2-professional-education-row"
+                                style="height:22px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -436,44 +562,50 @@
                         </t>
                     </table>
 
-                    <div style="font-weight:bold; margin-top:12px;">IV. ПРИЗНАЧЕННЯ І ПЕРЕВЕДЕННЯ</div>
+
+                    <!-- IV -->
+                    <div style="font-weight:bold; font-size:8.3pt; margin-top:7px;">
+                        IV. ПРИЗНАЧЕННЯ І ПЕРЕВЕДЕННЯ
+                    </div>
+
                     <t t-set="appointment_row_count"
                        t-value="len(events) if events else 1"/>
 
                     <table class="p2-appointments-table"
-                           style="width:100%; margin-top:4px; border-collapse:collapse;">
+                           style="width:100%; border-collapse:collapse; page-break-inside:avoid;">
                         <tr>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:9%;">
+                                style="border:1px solid #000; width:8%; padding:1px;">
                                 Дата
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:21%;">
-                                Назва структурного підрозділу (код)
+                                style="border:1px solid #000; width:20%; padding:1px;">
+                                Назва структурного<br/>
+                                підрозділу (код)
                             </th>
                             <th colspan="2"
-                                style="border:1px solid #000; padding:2px; width:27%;">
+                                style="border:1px solid #000; width:27%; padding:1px;">
                                 Професія, посада
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:13%;">
-                                Розряд (оклад)
+                                style="border:1px solid #000; width:9%; padding:1px;">
+                                Розряд<br/>(оклад)
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:17%;">
-                                Підстава, наказ №
+                                style="border:1px solid #000; width:22%; padding:1px;">
+                                Підстава,<br/>наказ №
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:13%;">
-                                Підпис працівника
+                                style="border:1px solid #000; width:14%; padding:1px;">
+                                Підпис<br/>працівника
                             </th>
                         </tr>
 
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:19%;">
+                            <th style="border:1px solid #000; width:18%; padding:1px;">
                                 назва
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:8%;">
+                            <th style="border:1px solid #000; width:9%; padding:1px;">
                                 код за КП*
                             </th>
                         </tr>
@@ -481,18 +613,18 @@
                         <t t-if="events">
                             <t t-foreach="events" t-as="event">
                                 <tr class="p2-appointment-row"
-                                    style="height:36px;">
-                                    <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                    style="height:20px;">
+                                    <td style="border:1px solid #000; padding:1px; text-align:center;">
                                         <span t-esc="event.effective_date.strftime('%d.%m.%Y') if event.effective_date else ''"/>
                                     </td>
-                                    <td style="border:1px solid #000; padding:2px;">
+                                    <td style="border:1px solid #000; padding:1px;">
                                         <span t-esc="event.new_department_id.name or ''"/>
                                     </td>
-                                    <td style="border:1px solid #000; padding:2px;">
+                                    <td style="border:1px solid #000; padding:1px;">
                                         <span t-esc="event.new_job_id.name or ''"/>
                                     </td>
                                     <td style="border:1px solid #000;"></td>
-                                    <td style="border:1px solid #000; padding:2px;">
+                                    <td style="border:1px solid #000; padding:1px;">
                                         <t t-if="event.professional_category_id">
                                             <span t-esc="event.professional_category_id.name"/>
                                         </t>
@@ -501,11 +633,13 @@
                                             <span t-esc="'%.2f' % event.new_wage"/>
                                         </t>
                                     </td>
-                                    <td style="border:1px solid #000; padding:2px;">
-                                        № <span t-esc="event.order_id.number or ''"/>
-                                        <t t-if="event.order_id.order_date">
-                                            від
-                                            <span t-esc="event.order_id.order_date.strftime('%d.%m.%Y')"/>
+                                    <td style="border:1px solid #000; padding:1px;">
+                                        <t t-if="event.order_id">
+                                            <span t-esc="event.order_id.number or ''"/>
+                                            <t t-if="event.order_id.order_date">
+                                                від
+                                                <span t-esc="event.order_id.order_date.strftime('%d.%m.%Y')"/>
+                                            </t>
                                         </t>
                                     </td>
                                     <td style="border:1px solid #000;"></td>
@@ -515,18 +649,18 @@
 
                         <t t-else="">
                             <tr class="p2-appointment-row"
-                                style="height:36px;">
-                                <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                style="height:20px;">
+                                <td style="border:1px solid #000; padding:1px; text-align:center;">
                                     <span t-esc="employee.service_hire_date.strftime('%d.%m.%Y') if employee.service_hire_date else ''"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <span t-esc="employee.department_id.name or ''"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <span t-esc="employee.job_id.name or employee.job_title or ''"/>
                                 </td>
                                 <td style="border:1px solid #000;"></td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <t t-if="employee.l10n_ua_current_professional_category_id">
                                         <span t-esc="employee.l10n_ua_current_professional_category_id.name"/>
                                     </t>
@@ -535,9 +669,9 @@
                                         <span t-esc="'%.2f' % employee.l10n_ua_current_wage"/>
                                     </t>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <t t-if="employee.l10n_ua_current_order_id">
-                                        № <span t-esc="employee.l10n_ua_current_order_id.number"/>
+                                        <span t-esc="employee.l10n_ua_current_order_id.number"/>
                                         <t t-if="employee.l10n_ua_current_order_id.order_date">
                                             від
                                             <span t-esc="employee.l10n_ua_current_order_id.order_date.strftime('%d.%m.%Y')"/>
@@ -548,10 +682,10 @@
                             </tr>
                         </t>
 
-                        <t t-foreach="[0, 1, 2][:3 - appointment_row_count] if appointment_row_count &lt; 3 else []"
+                        <t t-foreach="[0,1,2,3,4,5,6,7][:8 - appointment_row_count] if appointment_row_count &lt; 8 else []"
                            t-as="row">
                             <tr class="p2-appointment-row"
-                                style="height:36px;">
+                                style="height:20px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -563,66 +697,74 @@
                         </t>
                     </table>
 
-                    <div style="font-size:7pt; margin-top:3px;">
-                        * Код професії заповнюється відповідно до чинного Класифікатора професій.
+                    <div style="font-size:6.4pt; margin-top:2px;">
+                        * Відповідно до Класифікатора професій ДК 003-2005,
+                        затвердженого наказом Держстандарту України від 26.12.2005 № 375,
+                        з урахуванням позначки кваліфікаційного рівня
+                        (6 знаків, наприклад, код професії "муляр" - 7122.2).
                     </div>
 
-                    <div style="font-weight:bold; margin-top:12px;">V. ВІДПУСТКИ</div>
+
+                    <!-- V -->
+                    <div style="font-weight:bold; font-size:8.3pt; margin-top:5px;">
+                        V. ВІДПУСТКИ
+                    </div>
+
                     <t t-set="leave_row_count"
                        t-value="len(leaves)"/>
 
                     <table class="p2-leaves-table"
-                           style="width:100%; margin-top:4px; border-collapse:collapse;">
+                           style="width:100%; border-collapse:collapse; page-break-inside:avoid;">
                         <tr>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:27%;">
+                                style="border:1px solid #000; width:27%; padding:1px;">
                                 Вид відпустки
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:20%;">
+                                style="border:1px solid #000; width:20%; padding:1px;">
                                 За який період
                             </th>
                             <th colspan="2"
-                                style="border:1px solid #000; padding:2px; width:26%;">
+                                style="border:1px solid #000; width:26%; padding:1px;">
                                 Дата
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; padding:2px; width:27%;">
+                                style="border:1px solid #000; width:27%; padding:1px;">
                                 Підстава, наказ №
                             </th>
                         </tr>
 
                         <tr>
-                            <th style="border:1px solid #000; padding:2px; width:13%;">
-                                початку відпустки
+                            <th style="border:1px solid #000; width:13%; padding:1px;">
+                                початку<br/>відпустки
                             </th>
-                            <th style="border:1px solid #000; padding:2px; width:13%;">
-                                закінчення відпустки
+                            <th style="border:1px solid #000; width:13%; padding:1px;">
+                                закінчення<br/>відпустки
                             </th>
                         </tr>
 
                         <t t-foreach="leaves" t-as="leave">
                             <tr class="p2-leave-row"
-                                style="height:34px;">
-                                <td style="border:1px solid #000; padding:2px;">
+                                style="height:11px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <span t-esc="leave.holiday_status_id.name or ''"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <t t-if="leave.l10n_ua_work_period_from or leave.l10n_ua_work_period_to">
                                         <span t-esc="leave.l10n_ua_work_period_from.strftime('%d.%m.%Y') if leave.l10n_ua_work_period_from else ''"/>
                                         -
                                         <span t-esc="leave.l10n_ua_work_period_to.strftime('%d.%m.%Y') if leave.l10n_ua_work_period_to else ''"/>
                                     </t>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                <td style="border:1px solid #000; padding:1px; text-align:center;">
                                     <span t-esc="leave.request_date_from.strftime('%d.%m.%Y') if leave.request_date_from else ''"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px; text-align:center;">
+                                <td style="border:1px solid #000; padding:1px; text-align:center;">
                                     <span t-esc="leave.request_date_to.strftime('%d.%m.%Y') if leave.request_date_to else ''"/>
                                 </td>
-                                <td style="border:1px solid #000; padding:2px;">
+                                <td style="border:1px solid #000; padding:1px;">
                                     <t t-if="leave.l10n_ua_personnel_order_id">
-                                        № <span t-esc="leave.l10n_ua_personnel_order_id.number"/>
+                                        <span t-esc="leave.l10n_ua_personnel_order_id.number"/>
                                         <t t-if="leave.l10n_ua_personnel_order_id.order_date">
                                             від
                                             <span t-esc="leave.l10n_ua_personnel_order_id.order_date.strftime('%d.%m.%Y')"/>
@@ -632,10 +774,10 @@
                             </tr>
                         </t>
 
-                        <t t-foreach="[0, 1, 2, 3][:4 - leave_row_count] if leave_row_count &lt; 4 else []"
+                        <t t-foreach="[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30][:31 - leave_row_count] if leave_row_count &lt; 31 else []"
                            t-as="row">
                             <tr class="p2-leave-row"
-                                style="height:34px;">
+                                style="height:11px;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -645,39 +787,55 @@
                         </t>
                     </table>
 
-                    <div style="margin-top:14px;">
+
+                    <!-- Footer -->
+                    <div style="margin-top:5px;">
                         Додаткові відомості
-                        <span style="display:inline-block; width:78%; border-bottom:1px solid #000;"
+                        <span style="display:inline-block; width:79%; border-bottom:1px solid #000;"
                               t-esc="employee.additional_note or ''"/>
                     </div>
-                    <div style="margin-top:10px;">
-                        Дата і причина звільнення (підстава):
+
+                    <div style="border-bottom:1px solid #000; height:10px;"></div>
+
+                    <div style="margin-top:4px;">
+                        Дата і причина звільнення (підстава)
                         <strong t-esc="employee.departure_date.strftime('%d.%m.%Y') if employee.departure_date else ''"/>
                         <span t-esc="employee.departure_description or ''"/>
                     </div>
 
-                    <table style="width:100%; margin-top:25px; border-collapse:collapse;">
+                    <div style="border-bottom:1px solid #000; height:10px;"></div>
+
+                    <table style="width:100%; margin-top:5px; border-collapse:collapse;">
                         <tr>
-                            <td style="width:30%;">Працівник кадрової служби</td>
-                            <td style="width:20%; text-align:center;">___________________<br/>
-                                <span style="font-size:7pt;">(посада)</span>
+                            <td style="width:26%;">
+                                Працівник кадрової служби
                             </td>
-                            <td style="width:18%; text-align:center;">___________________<br/>
-                                <span style="font-size:7pt;">(підпис)</span>
+                            <td style="width:25%; text-align:center;">
+                                ______________________
+                                <div style="font-size:6.3pt;">(посада)</div>
                             </td>
-                            <td style="width:32%; text-align:center;">
-                                ______________________________<br/>
-                                <span style="font-size:7pt;">(П. І. Б.)</span>
+                            <td style="width:19%; text-align:center;">
+                                ________________
+                                <div style="font-size:6.3pt;">(підпис)</div>
+                            </td>
+                            <td style="width:30%; text-align:center;">
+                                __________________________
+                                <div style="font-size:6.3pt;">(П. І. Б.)</div>
                             </td>
                         </tr>
                     </table>
 
-                    <table style="width:100%; margin-top:22px; border-collapse:collapse;">
+                    <table style="width:100%; margin-top:5px; border-collapse:collapse;">
                         <tr>
-                            <td style="width:28%;">Підпис працівника</td>
-                            <td style="width:28%; text-align:center;">______________________</td>
-                            <td style="width:44%; text-align:center;">
+                            <td style="width:24%;">
+                                Підпис працівника
+                            </td>
+                            <td style="width:30%; text-align:center;">
+                                ________________________
+                            </td>
+                            <td style="width:46%; text-align:center;">
                                 «____» ____________ 20__ р.
+                                <div style="font-size:6.3pt;">(дата)</div>
                             </td>
                         </tr>
                     </table>

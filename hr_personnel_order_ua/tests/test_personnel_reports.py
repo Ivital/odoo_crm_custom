@@ -337,34 +337,63 @@ class TestPersonnelReports(TransactionCase):
             "hr_personnel_order_ua.action_report_personal_card_p2",
             self.employee,
         )
-        self.assertIn("ОСОБОВА КАРТКА ПРАЦІВНИКА", html)
-        self.assertIn("Кривий Ріг", html)
-        self.assertIn("Чоловіча", html)
-        self.assertIn("Україна", html)
-        self.assertIn("Стать", html)
-        self.assertIn("(чоловіча, жіноча)", html)
-        self.assertIn("Вид роботи", html)
-        self.assertIn("(основна, за сумісництвом)", html)
+        p2_root = lxml_html.fromstring(html)
+        p2_text = " ".join(
+            p2_root.text_content().split()
+        )
+
+        self.assertIn(
+            "ОСОБОВА КАРТКА ПРАЦІВНИКА № P2-TEST-001",
+            p2_text,
+        )
+        self.assertIn("Кривий Ріг", p2_text)
+        self.assertIn("Україна", p2_text)
+        self.assertIn("Стать", p2_text)
+        self.assertIn("чоловіча", p2_text)
+        self.assertIn("жіноча", p2_text)
+        self.assertIn("Вид роботи", p2_text)
+        self.assertIn("основна", p2_text)
+        self.assertIn("сумісництвом", p2_text)
         self.assertIn(
             "Спеціальність (професія) за дипломом (свідоцтвом)",
-            html,
+            p2_text,
         )
         self.assertIn(
             "Кваліфікація за дипломом (свідоцтвом)",
-            html,
+            p2_text,
         )
-        self.assertIn(
-            "(денна, вечірня, заочна)",
-            html,
-        )
+        self.assertIn("денна", p2_text)
+        self.assertIn("вечірня", p2_text)
+        self.assertIn("заочна", p2_text)
         self.assertIn(
             "Назва документа, що посвідчує професійну освіту, ким виданий",
-            html,
+            p2_text,
         )
-        self.assertIn("Підпис працівника", html)
-        self.assertNotIn("Кваліфікація / форма навчання", html)
-
-        p2_root = lxml_html.fromstring(html)
+        self.assertIn("Підпис працівника", p2_text)
+        self.assertNotIn(
+            "Кваліфікація / форма навчання",
+            p2_text,
+        )
+        self.assertIn(
+            "Пункти 6,8 не заповнюють на працівників - сумісників",
+            p2_text,
+        )
+        self.assertIn(
+            "Класифікатора професій ДК 003-2005",
+            p2_text,
+        )
+        self.assertIn(
+            "Ступінь родинного зв'язку",
+            p2_text,
+        )
+        self.assertIn(
+            "(склад сім'ї)",
+            p2_text,
+        )
+        self.assertIn(
+            "Назва райвійськкомату за місцем реєстрації",
+            p2_text,
+        )
         photo_cells = p2_root.xpath(
             "//*[contains("
             "concat(' ', normalize-space(@class), ' '), "
@@ -389,11 +418,11 @@ class TestPersonnelReports(TransactionCase):
 
         self.assertEqual(
             class_count("p2-education-school-row"),
-            4,
+            2,
         )
         self.assertEqual(
             class_count("p2-education-specialty-row"),
-            4,
+            3,
         )
         self.assertEqual(
             class_count("p2-postgraduate-row"),
@@ -409,11 +438,11 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertEqual(
             class_count("p2-appointment-row"),
-            3,
+            8,
         )
         self.assertEqual(
             class_count("p2-leave-row"),
-            4,
+            31,
         )
 
         self._assert_standard_pdf_layout(
@@ -436,6 +465,31 @@ class TestPersonnelReports(TransactionCase):
 
         with self.assertRaises(ValidationError):
             order.action_print_p3()
+
+    def test_p2_name_and_date_display_helpers(self):
+        surname, first_name, patronymic = (
+            self.employee._l10n_ua_report_name_parts()
+        )
+
+        self.assertEqual(
+            surname,
+            "Працівник",
+        )
+        self.assertEqual(
+            first_name,
+            "Для",
+        )
+        self.assertEqual(
+            patronymic,
+            "Друку Тестовий",
+        )
+
+        self.assertEqual(
+            self.employee._l10n_ua_report_date_words(
+                fields.Date.from_string("1980-08-02")
+            ),
+            "«02» серпня 1980р.",
+        )
 
     def test_private_address_helper(self):
         address = self.employee._l10n_ua_report_private_address()
