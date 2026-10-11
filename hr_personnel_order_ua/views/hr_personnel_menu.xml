@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--
+        Dedicated personnel-management section directly under
+        the standard Employees application.
+
+        Do not place these actions below hr.menu_hr_employee_payroll:
+        that menu is the standard "Employees" submenu and makes
+        personnel orders unnecessarily hard to discover.
+    -->
+    <menuitem id="menu_hr_personnel_management"
+              name="Кадровий облік"
+              parent="hr.menu_hr_root"
+              groups="hr.group_hr_user"
+              sequence="20"/>
+
     <menuitem id="menu_hr_personnel_order"
               name="Кадрові накази"
-              parent="hr.menu_hr_employee_payroll"
+              parent="menu_hr_personnel_management"
               action="action_hr_personnel_order"
               groups="hr.group_hr_user"
-              sequence="30"/>
+              sequence="10"/>
 
     <menuitem id="menu_hr_personnel_event"
               name="Кадрова історія"
-              parent="hr.menu_hr_employee_payroll"
+              parent="menu_hr_personnel_management"
               action="action_hr_personnel_event"
               groups="hr.group_hr_user"
-              sequence="31"/>
+              sequence="20"/>
 </odoo>

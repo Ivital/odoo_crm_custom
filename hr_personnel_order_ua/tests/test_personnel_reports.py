@@ -316,6 +316,68 @@ class TestPersonnelReports(TransactionCase):
             expected_pages=1,
         )
 
+    def test_personnel_management_menu_hierarchy(self):
+        hr_root = self.env.ref(
+            "hr.menu_hr_root"
+        )
+        personnel_menu = self.env.ref(
+            "hr_personnel_order_ua.menu_hr_personnel_management"
+        )
+        orders_menu = self.env.ref(
+            "hr_personnel_order_ua.menu_hr_personnel_order"
+        )
+        events_menu = self.env.ref(
+            "hr_personnel_order_ua.menu_hr_personnel_event"
+        )
+        orders_action = self.env.ref(
+            "hr_personnel_order_ua.action_hr_personnel_order"
+        )
+        events_action = self.env.ref(
+            "hr_personnel_order_ua.action_hr_personnel_event"
+        )
+        hr_user_group = self.env.ref(
+            "hr.group_hr_user"
+        )
+
+        self.assertEqual(
+            personnel_menu.parent_id,
+            hr_root,
+        )
+        self.assertEqual(
+            personnel_menu.name,
+            "Кадровий облік",
+        )
+        self.assertIn(
+            hr_user_group,
+            personnel_menu.groups_id,
+        )
+
+        self.assertEqual(
+            orders_menu.parent_id,
+            personnel_menu,
+        )
+        self.assertEqual(
+            orders_menu.name,
+            "Кадрові накази",
+        )
+        self.assertEqual(
+            orders_menu.action,
+            orders_action,
+        )
+
+        self.assertEqual(
+            events_menu.parent_id,
+            personnel_menu,
+        )
+        self.assertEqual(
+            events_menu.name,
+            "Кадрова історія",
+        )
+        self.assertEqual(
+            events_menu.action,
+            events_action,
+        )
+
     def test_p2_report_action_and_html(self):
         action = self.employee.action_print_personal_card_p2()
         self.assertEqual(
