@@ -100,6 +100,17 @@ class TestPersonnelReports(TransactionCase):
         )
         self.assertEqual(len(pages), expected_pages)
 
+        if (
+            report_xmlid
+            == "hr_personnel_order_ua.action_report_personal_card_p2"
+        ):
+            self.assertEqual(len(pages), 2)
+            second_page_style = pages[1].get("style", "")
+            self.assertIn(
+                "page-break-before:always",
+                second_page_style.replace(" ", ""),
+            )
+
         report = self.env.ref(report_xmlid)
 
         (

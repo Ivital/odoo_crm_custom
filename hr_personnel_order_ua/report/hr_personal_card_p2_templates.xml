@@ -293,7 +293,7 @@
                 </div>
 
                 <div class="page"
-                     style="font-family:'DejaVu Sans'; font-size:8.4pt; line-height:1.16;">
+                     style="page-break-before:always; font-family:'DejaVu Sans'; font-size:8.4pt; line-height:1.16;">
                     <div style="font-weight:bold;">
                         ІІІ. ПРОФЕСІЙНА ОСВІТА НА ВИРОБНИЦТВІ
                         (ЗА РАХУНОК ПІДПРИЄМСТВА-РОБОТОДАВЦЯ)
