@@ -556,14 +556,7 @@
                         </div>
 
                         <div style="margin-top:12px; border-bottom:1px solid #000; min-height:20px;">
-                            <span t-esc="line.departure_reason_id.name or ''"/>
-                            <t t-if="line.legal_reason">
-                                <span t-esc="line.legal_reason"/>
-                                <t t-if="line.legal_article">, </t>
-                            </t>
-                            <t t-if="line.legal_article">
-                                <span t-esc="line.legal_article"/>
-                            </t>
+                            <span t-esc="(line.legal_reason or (line.departure_reason_id.name if line.departure_reason_id else '')) + ((', ' + line.legal_article) if line.legal_article else '')"/>
                         </div>
                         <div style="font-size:8pt; text-align:center;">причина звільнення</div>
 
