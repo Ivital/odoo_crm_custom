@@ -406,6 +406,23 @@ class TestPersonnelReports(TransactionCase):
             photo_cells[0].get("style", "").replace(" ", ""),
         )
 
+        photo_style = photo_cells[0].get("style", "").replace(" ", "")
+        self.assertIn("width:32mm", photo_style)
+        self.assertIn("height:38mm", photo_style)
+
+        pages = p2_root.xpath(
+            "//div[contains("
+            "concat(' ', normalize-space(@class), ' '), "
+            "' page '"
+            ")]"
+        )
+        self.assertEqual(len(pages), 2)
+
+        for page in pages:
+            style = page.get("style", "").replace(" ", "")
+            self.assertIn("font-size:10pt", style)
+            self.assertIn("line-height:1.0", style)
+
         def class_count(class_name):
             return len(
                 p2_root.xpath(
@@ -437,8 +454,16 @@ class TestPersonnelReports(TransactionCase):
             9,
         )
         self.assertEqual(
+            class_count("p2-appointment-title-row"),
+            1,
+        )
+        self.assertEqual(
             class_count("p2-appointment-row"),
             8,
+        )
+        self.assertEqual(
+            class_count("p2-leave-title-row"),
+            1,
         )
         self.assertEqual(
             class_count("p2-leave-row"),

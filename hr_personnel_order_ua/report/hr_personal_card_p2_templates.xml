@@ -27,60 +27,69 @@
                 <!-- ================================================== -->
 
                 <div class="page"
-                     style="font-family:'Times New Roman'; font-size:7.8pt; line-height:1.06;">
+                     style="font-family:'Times New Roman'; font-size:10pt; line-height:1.0;">
 
                     <!-- Header -->
-                    <table style="width:100%; border-collapse:collapse;">
+                    <table class="p2-layout-table"
+                           style="width:100%; border-collapse:collapse; border:0 !important;">
+                        <tr style="height:5mm;">
+                            <td style="width:56%; border:0 !important;"></td>
+                            <td style="width:44%; border:0 !important; vertical-align:top; text-align:center;">
+                                <strong>Типова форма N П-2</strong>
+                            </td>
+                        </tr>
+
                         <tr>
-                            <td style="width:58%; vertical-align:top;">
-                                <strong style="font-size:9pt;"
+                            <td style="width:56%; vertical-align:top; border:0 !important;">
+                                <strong style="font-size:12pt;"
                                         t-esc="company.name"/>
 
-                                <div style="font-size:6.8pt; text-align:center; width:72%;">
+                                <div style="font-size:8pt; text-align:center; width:78%;">
                                     Найменування підприємства (установи, організації)
                                 </div>
 
-                                <div style="margin-top:4px;">
+                                <div style="margin-top:2pt;">
                                     Код ЄДРПОУ
                                     <strong t-esc="company.company_registry or ''"/>
                                 </div>
                             </td>
 
-                            <td style="width:42%; vertical-align:top;">
-                                <strong>Типова форма № П-2</strong><br/>
+                            <td style="width:44%; vertical-align:top; border:0 !important;">
                                 ЗАТВЕРДЖЕНО<br/>
                                 наказом Держкомстату та Міністерства оборони України<br/>
-                                від 25 грудня 2009 р. № 495/656
+                                від 25 грудня 2009 р. N 495/656
                             </td>
                         </tr>
                     </table>
 
 
                     <!-- Main identification table + photo -->
-                    <table style="width:100%; margin-top:8px; border-collapse:collapse;">
+                    <table class="p2-layout-table"
+                           style="width:184mm; margin-top:8pt; border-collapse:collapse; border:0 !important;">
                         <tr>
-                            <td style="width:78%; vertical-align:top;">
+                            <td style="width:148mm; vertical-align:top; border:0 !important;">
 
-                                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:7pt;">
-                                    <tr>
-                                        <th style="border:1px solid #000; width:15%; padding:2px;">
+                                <table class="p2-identification-table"
+                                       style="width:148mm; border-collapse:collapse; table-layout:fixed; text-align:center; font-size:10pt;">
+                                    <tr style="height:12.5mm;">
+                                        <th style="border:1px solid #000; width:16.3%; padding:1pt;">
                                             Дата<br/>заповнення
                                         </th>
-                                        <th style="border:1px solid #000; width:17%; padding:2px;">
+                                        <th style="border:1px solid #000; width:21.5%; padding:1pt;">
                                             Табельний номер
                                         </th>
-                                        <th style="border:1px solid #000; width:27%; padding:2px;">
+                                        <th style="border:1px solid #000; width:21.4%; padding:1pt;">
                                             Індивідуальний<br/>
                                             ідентифікаційний<br/>
                                             номер
                                         </th>
-                                        <th style="border:1px solid #000; width:18%; padding:2px;">
+                                        <th style="border:1px solid #000; width:16.4%; padding:1pt;">
                                             Стать<br/>
                                             <span style="font-weight:normal;">
                                                 (чоловіча,<br/>жіноча)
                                             </span>
                                         </th>
-                                        <th style="border:1px solid #000; width:23%; padding:2px;">
+                                        <th style="border:1px solid #000; width:24.4%; padding:1pt;">
                                             Вид роботи<br/>
                                             <span style="font-weight:normal;">
                                                 (основна, за<br/>сумісництвом)
@@ -88,41 +97,41 @@
                                         </th>
                                     </tr>
 
-                                    <tr style="height:25px;">
-                                        <td style="border:1px solid #000; padding:2px;">
+                                    <tr style="height:5.4mm; font-size:8pt;">
+                                        <td style="border:1px solid #000; padding:1pt;">
                                             <span t-esc="('%sр.' % (employee.l10n_ua_p2_card_date or employee.service_hire_date).strftime('%d.%m.%Y')) if (employee.l10n_ua_p2_card_date or employee.service_hire_date) else ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:2px;">
+                                        <td style="border:1px solid #000; padding:1pt;">
                                             <span t-esc="employee.identification_id or ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:2px;">
+                                        <td style="border:1px solid #000; padding:1pt;">
                                             <span t-esc="employee.l10n_ua_rnokpp or ''"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:2px;">
+                                        <td style="border:1px solid #000; padding:1pt;">
                                             <span t-esc="employee._l10n_ua_report_gender_label().lower()"/>
                                         </td>
-                                        <td style="border:1px solid #000; padding:2px;">
+                                        <td style="border:1px solid #000; padding:1pt;">
                                             <span t-esc="employee._l10n_ua_report_selection_label('l10n_ua_current_work_type').lower()"/>
                                         </td>
                                     </tr>
                                 </table>
 
-                                <div style="text-align:center; font-size:12pt; font-weight:bold; margin-top:10px;">
+                                <div style="text-align:center; font-size:14pt; line-height:1.0; font-weight:bold; margin-top:9pt;">
                                     ОСОБОВА КАРТКА ПРАЦІВНИКА №
                                     <span t-esc="employee.l10n_ua_p2_card_number or ''"/>
                                 </div>
                             </td>
 
-                            <td style="width:2%;"></td>
+                            <td style="width:4mm; border:0 !important;"></td>
 
                             <td class="p2-photo-cell"
-                                style="width:20%; border:1px solid #000; height:112px; vertical-align:middle; text-align:center; padding:2px;">
+                                style="width:32mm; height:38mm; border:1px solid #000; box-sizing:border-box; vertical-align:middle; text-align:center; padding:1mm;">
                                 <t t-if="report_photo">
                                     <img t-att-src="image_data_uri(report_photo)"
-                                         style="max-width:82px; max-height:106px;"/>
+                                         style="max-width:29mm; max-height:35mm;"/>
                                 </t>
                                 <t t-else="">
-                                    <span style="font-size:6.8pt;">
+                                    <span style="font-size:8pt;">
                                         місце для фотокартки
                                     </span>
                                 </t>
@@ -132,7 +141,7 @@
 
 
                     <!-- Section I -->
-                    <div style="font-weight:bold; font-size:8.7pt; margin-top:9px;">
+                    <div style="font-weight:bold; font-size:10pt; margin-top:8pt;">
                         І. ЗАГАЛЬНІ ВІДОМОСТІ
                     </div>
 
@@ -243,18 +252,18 @@
                         навчання в
 
                         <span class="p2-checkbox"
-                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                              style="display:inline-block; width:9pt; height:9pt; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
                         аспірантурі
 
                         <span class="p2-checkbox"
-                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                              style="display:inline-block; width:9pt; height:9pt; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
                         ад'юнктурі
 
                         <span class="p2-checkbox"
-                              style="display:inline-block; width:8px; height:8px; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
+                              style="display:inline-block; width:9pt; height:9pt; border:1px solid #000; vertical-align:middle; font-family:'Times New Roman';"></span>
                         докторантурі
 
-                        <span style="font-size:6.8pt;">
+                        <span style="font-size:10pt;">
                             (необхідне відмітити х)
                         </span>
                     </div>
@@ -347,16 +356,16 @@
                     <table class="p2-family-table"
                            style="width:100%; margin-top:2px; border-collapse:collapse;">
                         <tr>
-                            <th style="border:1px solid #000; width:28%; padding:1px;">
+                            <th style="border:1px solid #000; width:27.4%; padding:1px;">
                                 Ступінь родинного зв'язку<br/>
                                 <span style="font-weight:normal;">
                                     (склад сім'ї)
                                 </span>
                             </th>
-                            <th style="border:1px solid #000; width:52%; padding:1px;">
+                            <th style="border:1px solid #000; width:56.1%; padding:1px;">
                                 П. І. Б.
                             </th>
-                            <th style="border:1px solid #000; width:20%; padding:1px;">
+                            <th style="border:1px solid #000; width:16.5%; padding:1px;">
                                 Рік народження
                             </th>
                         </tr>
@@ -427,79 +436,79 @@
 
 
                     <!-- Section II -->
-                    <div style="font-weight:bold; font-size:8.5pt; margin-top:4px;">
+                    <div style="font-weight:bold; font-size:10pt; margin-top:3pt;">
                         ІІ. ВІДОМОСТІ ПРО ВІЙСЬКОВИЙ ОБЛІК
                     </div>
 
                     <table class="p2-military-table"
-                           style="width:100%; border-collapse:collapse; margin-top:1px; font-size:7.5pt;">
+                           style="width:100%; border-collapse:collapse; margin-top:1pt; font-size:10pt; border:0 !important;">
                         <tr>
-                            <td style="width:50%; vertical-align:top; padding-right:7px;">
+                            <td style="width:50%; vertical-align:top; padding-right:7pt; border:0 !important;">
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Група обліку
                                     <strong t-if="employee.l10n_ua_p2_military_group"
                                             t-esc="employee.l10n_ua_p2_military_group"/>
-                                    <span t-else="">____________________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Категорія обліку
                                     <strong t-if="employee.l10n_ua_p2_military_category"
                                             t-esc="employee.l10n_ua_p2_military_category"/>
-                                    <span t-else="">_________________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Склад
                                     <strong t-if="employee.l10n_ua_p2_military_composition"
                                             t-esc="employee.l10n_ua_p2_military_composition"/>
-                                    <span t-else="">______________________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Військове звання
                                     <strong t-if="employee.l10n_ua_p2_military_rank"
                                             t-esc="employee.l10n_ua_p2_military_rank"/>
-                                    <span t-else="">_____________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Військово-облікова спеціальність №
                                     <strong t-if="employee.l10n_ua_p2_military_specialty"
                                             t-esc="employee.l10n_ua_p2_military_specialty"/>
-                                    <span t-else="">______________</span>
+                                    <span t-else=""></span>
                                 </div>
                             </td>
 
-                            <td style="width:50%; vertical-align:top; padding-left:7px;">
+                            <td style="width:50%; vertical-align:top; padding-left:7pt; border:0 !important;">
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Придатність до військової служби
                                     <strong t-if="employee.l10n_ua_p2_military_fitness"
                                             t-esc="employee.l10n_ua_p2_military_fitness"/>
-                                    <span t-else="">___________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Назва райвійськкомату за місцем реєстрації
                                     <strong t-if="employee.l10n_ua_p2_military_tcc_registered"
                                             t-esc="employee.l10n_ua_p2_military_tcc_registered"/>
-                                    <span t-else="">___________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Назва райвійськкомату за місцем фактичного проживання
                                     <strong t-if="employee.l10n_ua_p2_military_tcc_actual"
                                             t-esc="employee.l10n_ua_p2_military_tcc_actual"/>
-                                    <span t-else="">___________________</span>
+                                    <span t-else=""></span>
                                 </div>
 
-                                <div class="p2-military-field" style="min-height:14px;">
+                                <div class="p2-military-field" style="line-height:1.0; margin:0;">
                                     Перебування на спеціальному обліку
                                     <strong t-if="employee.l10n_ua_p2_military_special_register"
                                             t-esc="employee.l10n_ua_p2_military_special_register"/>
-                                    <span t-else="">___________________</span>
+                                    <span t-else=""></span>
                                 </div>
                             </td>
                         </tr>
@@ -512,15 +521,15 @@
                 <!-- ================================================== -->
 
                 <div class="page"
-                     style="page-break-before:always; font-family:'Times New Roman'; font-size:7.4pt; line-height:1.04;">
+                     style="page-break-before:always; font-family:'Times New Roman'; font-size:10pt; line-height:1.0;">
 
-                    <div style="margin-bottom:18px;">
+                    <div style="margin-bottom:18pt;">
                         «*» Пункти 6,8 не заповнюють на працівників - сумісників
                     </div>
 
 
                     <!-- III -->
-                    <div style="font-weight:bold; font-size:8.3pt;">
+                    <div style="font-weight:bold; font-size:10pt;">
                         ІІІ. ПРОФЕСІЙНА ОСВІТА НА ВИРОБНИЦТВІ
                         (ЗА РАХУНОК ПІДПРИЄМСТВА-РОБОТОДАВЦЯ)
                     </div>
@@ -551,7 +560,7 @@
 
                         <t t-foreach="[0, 1, 2]" t-as="row">
                             <tr class="p2-professional-education-row"
-                                style="height:22px;">
+                                style="height:4.3mm;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -564,18 +573,21 @@
 
 
                     <!-- IV -->
-                    <div style="font-weight:bold; font-size:8.3pt; margin-top:7px;">
-                        IV. ПРИЗНАЧЕННЯ І ПЕРЕВЕДЕННЯ
-                    </div>
-
                     <t t-set="appointment_row_count"
                        t-value="len(events) if events else 1"/>
 
                     <table class="p2-appointments-table"
-                           style="width:100%; border-collapse:collapse; page-break-inside:avoid;">
+                           style="width:100%; margin-top:7pt; border-collapse:collapse; page-break-inside:avoid;">
+                        <tr class="p2-appointment-title-row">
+                            <th colspan="7"
+                                style="border:1px solid #000; text-align:left; font-size:10pt; padding:1pt;">
+                                IV. ПРИЗНАЧЕННЯ І ПЕРЕВЕДЕННЯ
+                            </th>
+                        </tr>
+
                         <tr>
                             <th rowspan="2"
-                                style="border:1px solid #000; width:8%; padding:1px;">
+                                style="border:1px solid #000; width:11%; padding:1px;">
                                 Дата
                             </th>
                             <th rowspan="2"
@@ -584,28 +596,28 @@
                                 підрозділу (код)
                             </th>
                             <th colspan="2"
-                                style="border:1px solid #000; width:27%; padding:1px;">
+                                style="border:1px solid #000; width:28%; padding:1px;">
                                 Професія, посада
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; width:9%; padding:1px;">
+                                style="border:1px solid #000; width:8%; padding:1px;">
                                 Розряд<br/>(оклад)
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; width:22%; padding:1px;">
+                                style="border:1px solid #000; width:20%; padding:1px;">
                                 Підстава,<br/>наказ №
                             </th>
                             <th rowspan="2"
-                                style="border:1px solid #000; width:14%; padding:1px;">
+                                style="border:1px solid #000; width:13%; padding:1px;">
                                 Підпис<br/>працівника
                             </th>
                         </tr>
 
                         <tr>
-                            <th style="border:1px solid #000; width:18%; padding:1px;">
+                            <th style="border:1px solid #000; width:15%; padding:1px;">
                                 назва
                             </th>
-                            <th style="border:1px solid #000; width:9%; padding:1px;">
+                            <th style="border:1px solid #000; width:13%; padding:1px;">
                                 код за КП*
                             </th>
                         </tr>
@@ -613,7 +625,7 @@
                         <t t-if="events">
                             <t t-foreach="events" t-as="event">
                                 <tr class="p2-appointment-row"
-                                    style="height:20px;">
+                                    style="height:4.3mm;">
                                     <td style="border:1px solid #000; padding:1px; text-align:center;">
                                         <span t-esc="event.effective_date.strftime('%d.%m.%Y') if event.effective_date else ''"/>
                                     </td>
@@ -649,7 +661,7 @@
 
                         <t t-else="">
                             <tr class="p2-appointment-row"
-                                style="height:20px;">
+                                style="height:4.3mm;">
                                 <td style="border:1px solid #000; padding:1px; text-align:center;">
                                     <span t-esc="employee.service_hire_date.strftime('%d.%m.%Y') if employee.service_hire_date else ''"/>
                                 </td>
@@ -685,7 +697,7 @@
                         <t t-foreach="[0,1,2,3,4,5,6,7][:8 - appointment_row_count] if appointment_row_count &lt; 8 else []"
                            t-as="row">
                             <tr class="p2-appointment-row"
-                                style="height:20px;">
+                                style="height:4.3mm;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -697,7 +709,12 @@
                         </t>
                     </table>
 
-                    <div style="font-size:6.4pt; margin-top:2px;">
+                    <div class="p2-classifier-blank"
+                         style="font-size:12pt; line-height:0.8; margin-top:1pt;">
+                        ____________
+                    </div>
+
+                    <div style="font-size:8pt; margin-top:1pt;">
                         * Відповідно до Класифікатора професій ДК 003-2005,
                         затвердженого наказом Держстандарту України від 26.12.2005 № 375,
                         з урахуванням позначки кваліфікаційного рівня
@@ -706,46 +723,49 @@
 
 
                     <!-- V -->
-                    <div style="font-weight:bold; font-size:8.3pt; margin-top:5px;">
-                        V. ВІДПУСТКИ
-                    </div>
-
                     <t t-set="leave_row_count"
                        t-value="len(leaves)"/>
 
                     <table class="p2-leaves-table"
-                           style="width:100%; border-collapse:collapse; page-break-inside:avoid;">
-                        <tr>
-                            <th rowspan="2"
-                                style="border:1px solid #000; width:27%; padding:1px;">
-                                Вид відпустки
-                            </th>
-                            <th rowspan="2"
-                                style="border:1px solid #000; width:20%; padding:1px;">
-                                За який період
-                            </th>
-                            <th colspan="2"
-                                style="border:1px solid #000; width:26%; padding:1px;">
-                                Дата
-                            </th>
-                            <th rowspan="2"
-                                style="border:1px solid #000; width:27%; padding:1px;">
-                                Підстава, наказ №
+                           style="width:100%; margin-top:2pt; border-collapse:collapse; page-break-inside:avoid;">
+                        <tr class="p2-leave-title-row">
+                            <th colspan="5"
+                                style="border:1px solid #000; text-align:left; font-size:10pt; padding:1pt;">
+                                V. ВІДПУСТКИ
                             </th>
                         </tr>
 
                         <tr>
-                            <th style="border:1px solid #000; width:13%; padding:1px;">
+                            <th rowspan="2"
+                                style="border:1px solid #000; width:27.6%; padding:1px;">
+                                Вид відпустки
+                            </th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; width:19.7%; padding:1px;">
+                                За який період
+                            </th>
+                            <th colspan="2"
+                                style="border:1px solid #000; width:29%; padding:1px;">
+                                Дата
+                            </th>
+                            <th rowspan="2"
+                                style="border:1px solid #000; width:23.7%; padding:1px;">
+                                Підстава, наказ N
+                            </th>
+                        </tr>
+
+                        <tr>
+                            <th style="border:1px solid #000; width:14.5%; padding:1px;">
                                 початку<br/>відпустки
                             </th>
-                            <th style="border:1px solid #000; width:13%; padding:1px;">
+                            <th style="border:1px solid #000; width:14.5%; padding:1px;">
                                 закінчення<br/>відпустки
                             </th>
                         </tr>
 
                         <t t-foreach="leaves" t-as="leave">
                             <tr class="p2-leave-row"
-                                style="height:11px;">
+                                style="height:4.3mm;">
                                 <td style="border:1px solid #000; padding:1px;">
                                     <span t-esc="leave.holiday_status_id.name or ''"/>
                                 </td>
@@ -777,7 +797,7 @@
                         <t t-foreach="[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30][:31 - leave_row_count] if leave_row_count &lt; 31 else []"
                            t-as="row">
                             <tr class="p2-leave-row"
-                                style="height:11px;">
+                                style="height:4.3mm;">
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
                                 <td style="border:1px solid #000;"></td>
@@ -789,53 +809,71 @@
 
 
                     <!-- Footer -->
-                    <div style="margin-top:5px;">
+                    <div style="margin-top:4pt;">
                         Додаткові відомості
-                        <span style="display:inline-block; width:79%; border-bottom:1px solid #000;"
+                        <span style="display:inline-block; width:78%; border-bottom:1px solid #000;"
                               t-esc="employee.additional_note or ''"/>
                     </div>
 
-                    <div style="border-bottom:1px solid #000; height:10px;"></div>
+                    <div style="height:10pt; border-bottom:1px solid #000;"></div>
 
-                    <div style="margin-top:4px;">
+                    <div style="margin-top:3pt;">
                         Дата і причина звільнення (підстава)
                         <strong t-esc="employee.departure_date.strftime('%d.%m.%Y') if employee.departure_date else ''"/>
                         <span t-esc="employee.departure_description or ''"/>
                     </div>
 
-                    <div style="border-bottom:1px solid #000; height:10px;"></div>
+                    <div style="height:10pt; border-bottom:1px solid #000;"></div>
 
-                    <table style="width:100%; margin-top:5px; border-collapse:collapse;">
+                    <table class="p2-signature-layout"
+                           style="width:100%; margin-top:4pt; border-collapse:collapse; border:0 !important;">
                         <tr>
-                            <td style="width:26%;">
+                            <td style="width:27%; border:0 !important;">
                                 Працівник кадрової служби
                             </td>
-                            <td style="width:25%; text-align:center;">
-                                ______________________
-                                <div style="font-size:6.3pt;">(посада)</div>
+
+                            <td style="width:25%; border:0 !important; text-align:center;">
+                                <span style="display:inline-block; width:92%; border-bottom:1px solid #000;">&#160;</span>
                             </td>
-                            <td style="width:19%; text-align:center;">
-                                ________________
-                                <div style="font-size:6.3pt;">(підпис)</div>
+
+                            <td style="width:18%; border:0 !important; text-align:center;">
+                                <span style="display:inline-block; width:90%; border-bottom:1px solid #000;">&#160;</span>
                             </td>
-                            <td style="width:30%; text-align:center;">
-                                __________________________
-                                <div style="font-size:6.3pt;">(П. І. Б.)</div>
+
+                            <td style="width:30%; border:0 !important; text-align:center;">
+                                <span style="display:inline-block; width:94%; border-bottom:1px solid #000;">&#160;</span>
                             </td>
+                        </tr>
+
+                        <tr style="font-size:8pt;">
+                            <td style="border:0 !important;"></td>
+                            <td style="border:0 !important; text-align:center;">(посада)</td>
+                            <td style="border:0 !important; text-align:center;">(підпис)</td>
+                            <td style="border:0 !important; text-align:center;">(П. І. Б.)</td>
                         </tr>
                     </table>
 
-                    <table style="width:100%; margin-top:5px; border-collapse:collapse;">
+                    <table class="p2-signature-layout"
+                           style="width:100%; margin-top:5pt; border-collapse:collapse; border:0 !important;">
                         <tr>
-                            <td style="width:24%;">
+                            <td style="width:24%; border:0 !important;">
                                 Підпис працівника
                             </td>
-                            <td style="width:30%; text-align:center;">
-                                ________________________
+
+                            <td style="width:30%; border:0 !important; text-align:center;">
+                                <span style="display:inline-block; width:90%; border-bottom:1px solid #000;">&#160;</span>
                             </td>
-                            <td style="width:46%; text-align:center;">
+
+                            <td style="width:46%; border:0 !important; text-align:center;">
                                 «____» ____________ 20__ р.
-                                <div style="font-size:6.3pt;">(дата)</div>
+                            </td>
+                        </tr>
+
+                        <tr style="font-size:8pt;">
+                            <td style="border:0 !important;"></td>
+                            <td style="border:0 !important;"></td>
+                            <td style="border:0 !important; text-align:center;">
+                                (дата)
                             </td>
                         </tr>
                     </table>
