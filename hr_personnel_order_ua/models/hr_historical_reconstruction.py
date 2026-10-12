@@ -1,3 +1,5 @@
+import unicodedata
+
 from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
@@ -55,8 +57,18 @@ class HrJobHistoricalCanonical(models.Model):
 
     @api.model
     def l10n_ua_job_name_key(self, name):
+        # Unicode compatibility normalization is required
+        # before whitespace folding and casefolding. Without
+        # NFKC, visually equivalent compatibility forms such
+        # as ASCII "ABC" and FULLWIDTH "ＡＢＣ" produce
+        # different historical job identity keys.
+        normalized = unicodedata.normalize(
+            "NFKC",
+            name or "",
+        )
+
         return " ".join(
-            (name or "").split()
+            normalized.split()
         ).strip().casefold()
 
     @api.model

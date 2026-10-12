@@ -1588,6 +1588,30 @@ class TestPersonnelOrderApplication(TransactionCase):
             created,
         )
 
+    def test_04_job_name_matching_uses_unicode_nfkc(self):
+        Job = self.env["hr.job"]
+
+        self.assertEqual(
+            Job.l10n_ua_job_name_key(
+                "ABC"
+            ),
+            Job.l10n_ua_job_name_key(
+                "ＡＢＣ"
+            ),
+        )
+
+        found = (
+            Job.l10n_ua_find_canonical_job(
+                "КШЗ ＴＥＳＴ Посада A",
+                company=self.env.company,
+            )
+        )
+
+        self.assertEqual(
+            found,
+            self.job,
+        )
+
     def test_04_factual_period_is_immutable_outside_engine(self):
         historical_date = fields.Date.from_string(
             "2004-08-06"
