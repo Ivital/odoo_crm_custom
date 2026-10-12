@@ -962,21 +962,142 @@ class HrPersonnelOrderLineHistorical(models.Model):
                 )
             )
 
-        return (
+        Employee = (
             self.env["hr.employee"]
             .sudo()
-            .with_context(active_test=False)
-            .create(
-                {
-                    "name": name,
-                    "company_id":
-                        self.company_id.id,
-                    # Historical discovery must never make
-                    # the person operationally employed now.
-                    "active": False,
-                }
+            .with_context(
+                active_test=False,
+
+                # OCA hr_employee_calendar_planning normally
+                # requires every employee to have calendar
+                # planning rows. A historical-only employee is
+                # not operationally employed now and therefore
+                # must not receive a current working calendar.
+                skip_employee_calendars_required=True,
             )
         )
+
+        # OCA hr_employee_id generates an employee number after
+        # create() whenever identification_id is empty. Use a
+        # transaction-local unique sentinel so that generator is
+        # never invoked. It is cleared immediately after all
+        # create() overrides have completed.
+        temporary_identification = (
+            "__historical_pending__:"
+            f"{self.company_id.id}:{self.id}"
+        )
+
+        vals = {
+            "name":
+                name,
+            "company_id":
+                self.company_id.id,
+
+            # Historical discovery must never make the person
+            # operationally employed now.
+            "active":
+                False,
+
+            "identification_id":
+                temporary_identification,
+
+            # ResourceMixin still creates the required
+            # resource.resource, but without assigning a
+            # current working calendar.
+            "resource_calendar_id":
+                False,
+
+            "department_id":
+                False,
+            "job_id":
+                False,
+            "service_hire_date":
+                False,
+        }
+
+        # Do not acquire a hard dependency on
+        # hr_employee_calendar_planning. When it is installed,
+        # explicitly suppress its default calendar_ids value.
+        if "calendar_ids" in Employee._fields:
+            vals["calendar_ids"] = []
+
+        employee = Employee.create(
+            vals
+        )
+
+        employee.invalidate_recordset()
+
+        calendar_ids = (
+            employee.calendar_ids
+            if "calendar_ids" in employee._fields
+            else False
+        )
+
+        # Check before clearing the sentinel. If another addon
+        # has manufactured operational state, fail the whole
+        # historical transaction instead of trying to clean up
+        # generated calendars afterwards.
+        if (
+            employee.identification_id
+            != temporary_identification
+            or employee.resource_calendar_id
+            or calendar_ids
+            or employee.department_id
+            or employee.job_id
+            or employee.service_hire_date
+            or employee.contract_id
+            or employee.active
+        ):
+            raise ValidationError(
+                _(
+                    "Не вдалося створити історичну картку "
+                    "%(employee)s без поточних кадрових "
+                    "атрибутів. Операцію скасовано."
+                )
+                % {
+                    "employee":
+                        name,
+                }
+            )
+
+        # NULL is the truthful value: the historical source does
+        # not provide a current personnel number.
+        employee.write(
+            {
+                "identification_id":
+                    False,
+            }
+        )
+
+        employee.invalidate_recordset()
+
+        if (
+            employee.identification_id
+            or employee.resource_calendar_id
+            or (
+                "calendar_ids"
+                in employee._fields
+                and employee.calendar_ids
+            )
+            or employee.department_id
+            or employee.job_id
+            or employee.service_hire_date
+            or employee.contract_id
+            or employee.active
+        ):
+            raise ValidationError(
+                _(
+                    "Історична картка %(employee)s "
+                    "отримала поточні кадрові атрибути. "
+                    "Операцію скасовано."
+                )
+                % {
+                    "employee":
+                        name,
+                }
+            )
+
+        return employee
 
     def _historical_create_partial_period(
         self,

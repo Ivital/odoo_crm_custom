@@ -471,6 +471,12 @@ class TestPersonnelOrderApplication(TransactionCase):
             "hr.contract"
         ].search_count([])
 
+        calendar_count = (
+            self.env["resource.calendar"]
+            .with_context(active_test=False)
+            .search_count([])
+        )
+
         order = self.env[
             "hr.personnel.order"
         ].create({
@@ -506,12 +512,42 @@ class TestPersonnelOrderApplication(TransactionCase):
             employee.active,
         )
 
+        # Historical-only discovery must not inherit or invent
+        # current operational employment attributes.
+        self.assertFalse(
+            employee.identification_id,
+        )
+
+        self.assertFalse(
+            employee.resource_calendar_id,
+        )
+
+        if "calendar_ids" in employee._fields:
+            self.assertFalse(
+                employee.calendar_ids,
+            )
+
+        self.assertFalse(
+            employee.department_id,
+        )
+
+        self.assertFalse(
+            employee.job_id,
+        )
+
         self.assertFalse(
             employee.contract_id,
         )
 
         self.assertFalse(
             employee.service_hire_date,
+        )
+
+        self.assertEqual(
+            self.env["resource.calendar"]
+            .with_context(active_test=False)
+            .search_count([]),
+            calendar_count,
         )
 
         self.assertEqual(

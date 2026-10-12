@@ -1,7 +1,7 @@
 {
     "name": "HR Personnel Orders Ukraine",
     "summary": "Structured Ukrainian personnel orders and immutable HR event history",
-    "version": "18.0.3.0.17",
+    "version": "18.0.3.0.18",
     "category": "Human Resources",
     "license": "LGPL-3",
     "author": "Ivital",
