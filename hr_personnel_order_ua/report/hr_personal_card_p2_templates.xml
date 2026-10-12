@@ -175,7 +175,7 @@
                     </div>
 
                     <div style="font-weight:bold; min-height:12px;">
-                        <span t-esc="employee._l10n_ua_report_selection_label('certificate')"/>
+                        <span t-esc="employee._l10n_ua_report_education_levels()"/>
                     </div>
 
 
@@ -194,21 +194,21 @@
                             </th>
                         </tr>
 
-                        <tr class="p2-education-school-row"
-                            style="height:17px;">
-                            <td style="border:1px solid #000; padding:1px;">
-                                <span t-esc="employee.study_school or ''"/>
-                            </td>
-                            <td style="border:1px solid #000;"></td>
-                            <td style="border:1px solid #000;"></td>
-                        </tr>
-
-                        <tr class="p2-education-school-row"
-                            style="height:17px;">
-                            <td style="border:1px solid #000;"></td>
-                            <td style="border:1px solid #000;"></td>
-                            <td style="border:1px solid #000;"></td>
-                        </tr>
+                        <t t-foreach="employee._l10n_ua_report_education_rows(2)"
+                           t-as="education">
+                            <tr class="p2-education-school-row"
+                                style="height:17px;">
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education.institution_name if education else ''"/>
+                                </td>
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education._l10n_ua_p2_document_text() if education else ''"/>
+                                </td>
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education.graduation_year if education and education.graduation_year else ''"/>
+                                </td>
+                            </tr>
+                        </t>
 
                         <tr>
                             <th style="border:1px solid #000; padding:1px;">
@@ -225,21 +225,19 @@
                             </th>
                         </tr>
 
-                        <tr class="p2-education-specialty-row"
-                            style="height:17px;">
-                            <td style="border:1px solid #000; padding:1px;">
-                                <span t-esc="employee.study_field or ''"/>
-                            </td>
-                            <td style="border:1px solid #000;"></td>
-                            <td style="border:1px solid #000;"></td>
-                        </tr>
-
-                        <t t-foreach="[0, 1]" t-as="row">
+                        <t t-foreach="employee._l10n_ua_report_education_rows(3)"
+                           t-as="education">
                             <tr class="p2-education-specialty-row"
                                 style="height:17px;">
-                                <td style="border:1px solid #000;"></td>
-                                <td style="border:1px solid #000;"></td>
-                                <td style="border:1px solid #000;"></td>
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education.specialty if education else ''"/>
+                                </td>
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education.qualification if education else ''"/>
+                                </td>
+                                <td style="border:1px solid #000; padding:1px;">
+                                    <span t-esc="education._l10n_ua_p2_study_form_label() if education else ''"/>
+                                </td>
                             </tr>
                         </t>
                     </table>

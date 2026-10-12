@@ -5,6 +5,64 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='study_field']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='study_school']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='personal_information']" position="before">
+                <page name="l10n_ua_education"
+                      string="Освіта"
+                      groups="hr.group_hr_user">
+                    <field name="l10n_ua_education_ids"
+                           nolabel="1"
+                           context="{'default_employee_id': id}">
+                        <list editable="bottom"
+                              default_order="sequence, graduation_year, id">
+                            <field name="sequence" widget="handle"/>
+                            <field name="education_level"/>
+                            <field name="institution_name"/>
+                            <field name="specialty" optional="show"/>
+                            <field name="qualification" optional="show"/>
+                            <field name="document_type" optional="show"/>
+                            <field name="document_series" optional="show"/>
+                            <field name="document_number" optional="show"/>
+                            <field name="graduation_year" optional="show"/>
+                            <field name="study_form" optional="hide"/>
+                            <field name="issue_date" optional="hide"/>
+                        </list>
+                        <form string="Освіта працівника">
+                            <sheet>
+                                <group>
+                                    <group>
+                                        <field name="sequence"/>
+                                        <field name="education_level"/>
+                                        <field name="institution_name"/>
+                                        <field name="specialty"/>
+                                        <field name="qualification"/>
+                                        <field name="study_form"/>
+                                    </group>
+                                    <group>
+                                        <field name="document_type"/>
+                                        <field name="document_series"/>
+                                        <field name="document_number"/>
+                                        <field name="issue_date"/>
+                                        <field name="graduation_year"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <field name="note"/>
+                                    <field name="source" readonly="1"/>
+                                    <field name="source_reference" readonly="1"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_personnel_orders"
                         type="object"

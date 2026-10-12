@@ -24,4 +24,10 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
     </record>
+    <record id="hr_employee_education_company_rule" model="ir.rule">
+        <field name="name">Освіта працівників: підприємства користувача</field>
+        <field name="model_id" ref="model_hr_employee_education"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
 </odoo>

@@ -15,6 +15,13 @@ class HrEmployee(models.Model):
         compute="_compute_personnel_counts",
     )
 
+    l10n_ua_education_ids = fields.One2many(
+        "hr.employee.education",
+        "employee_id",
+        string="Освіта",
+        groups="hr.group_hr_user",
+    )
+
     l10n_ua_employment_period_ids = fields.One2many(
         "hr.personnel.employment.period",
         "employee_id",

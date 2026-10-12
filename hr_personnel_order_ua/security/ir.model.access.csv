@@ -3,3 +3,4 @@ access_hr_personnel_order_user,hr.personnel.order user,model_hr_personnel_order,
 access_hr_personnel_order_line_user,hr.personnel.order.line user,model_hr_personnel_order_line,hr.group_hr_user,1,1,1,1
 access_hr_personnel_event_user,hr.personnel.event user,model_hr_personnel_event,hr.group_hr_user,1,0,0,0
 access_hr_personnel_employment_period_user,hr.personnel.employment.period user,model_hr_personnel_employment_period,hr.group_hr_user,1,0,0,0
+access_hr_employee_education_user,hr.employee.education user,model_hr_employee_education,hr.group_hr_user,1,1,1,1

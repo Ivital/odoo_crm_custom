@@ -375,6 +375,43 @@ class HrEmployeePersonnelReport(models.Model):
             order="request_date_from asc, id asc",
         )
 
+    def _l10n_ua_report_education_rows(self, minimum_rows=0):
+        self.ensure_one()
+        rows = list(
+            self.l10n_ua_education_ids.sorted(
+                key=lambda education: (
+                    education.sequence,
+                    education.graduation_year or 0,
+                    education.id,
+                )
+            )
+        )
+        rows.extend([False] * max(0, minimum_rows - len(rows)))
+        return rows
+
+    def _l10n_ua_report_education_levels(self):
+        self.ensure_one()
+        selection = dict(
+            self.env["hr.employee.education"]
+            ._fields["education_level"]
+            ._description_selection(self.env)
+        )
+        labels = []
+        for education in self.l10n_ua_education_ids.sorted(
+            key=lambda record: (
+                record.sequence,
+                record.graduation_year or 0,
+                record.id,
+            )
+        ):
+            label = selection.get(
+                education.education_level,
+                education.education_level,
+            )
+            if label and label not in labels:
+                labels.append(label)
+        return ", ".join(labels)
+
     def _l10n_ua_report_latest_medical_exam(self):
         self.ensure_one()
         return self.env["hr.employee.medical.examination"].sudo().search(

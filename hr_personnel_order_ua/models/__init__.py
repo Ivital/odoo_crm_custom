@@ -6,5 +6,6 @@ from . import hr_personnel_employment_period
 from . import hr_contract
 from . import hr_leave
 from . import hr_employee
+from . import hr_employee_education
 from . import hr_personnel_reports
 from . import hr_historical_reconstruction
