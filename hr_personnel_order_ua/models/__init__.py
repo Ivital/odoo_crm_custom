@@ -9,3 +9,4 @@ from . import hr_employee
 from . import hr_employee_education
 from . import hr_personnel_reports
 from . import hr_historical_reconstruction
+from . import hr_resume_history
